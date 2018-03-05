@@ -5,7 +5,7 @@ uint8 RECOVERABLE_ERROR=3
 uint8 FATAL_ERROR=4
 
 Header header
-uint8 error_type
 string node_name
 string function
 string description
+uint8 error_type

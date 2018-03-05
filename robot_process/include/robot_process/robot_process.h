@@ -4,8 +4,8 @@
    \author Maciej Marcin ZURAD
    \date 01/03/2018
 */
-#ifndef DRONE_PROCESS_H
-#define DRONE_PROCESS_H
+#ifndef ROBOT_PROCESS_H
+#define ROBOT_PROCESS_H
 
 #include <string>
 #include <thread>
@@ -22,27 +22,31 @@ class RobotProcess
 {
 public:
 
-  RobotProcess();
+  RobotProcess(int argc, char* argv[]);
+  RobotProcess(int argc, char* argv[], std::string name);
   ~RobotProcess();
 
-  void run(bool autostart=false);
+  void run(bool autostart = false);
 
 protected:
 
-  ros::NodeHandle node_handle_;
+  ros::NodeHandlePtr node_handle_;
+  ros::NodeHandlePtr node_handle_private_;
 
-  virtual void onCreate() { };
-  virtual void onConfigure() { };
+  virtual void onCreate() {};
+  virtual void onConfigure() {};
 
-  virtual void onStart() { };
-  virtual void onStop() { };
+  virtual void onStart() {};
+  virtual void onStop() {};
 
-  virtual void onPause() { };
-  virtual void onResume() { };
+  virtual void onPause() {};
+  virtual void onResume() {};
 
 private:
 
-  std::thread heartbeat_thread_;
+  bool autostart_ = false;
+
+  std::string node_name_;
 
   ros::ServiceServer terminate_service_server_;
   ros::ServiceServer reconfigure_service_server_;
@@ -55,7 +59,7 @@ private:
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
-  std::string node_name_;
+  std::thread heartbeat_thread_;
 
   void create();
   void configure();
@@ -65,6 +69,10 @@ private:
 
   void resume();
   void pause();
+
+  void terminate();
+
+  void notifyState();
 
 };
 

@@ -1,0 +1,9 @@
+<launch>
+
+  <arg name="autostart" default="true" />
+
+  <node pkg="robot_process_tutorials" type="robot_process_tutorials_node" name="robot_process_tutorials" output="screen">
+    <param name="autostart" type="bool" value="$(arg autostart)" />
+  </node>
+
+</launch>

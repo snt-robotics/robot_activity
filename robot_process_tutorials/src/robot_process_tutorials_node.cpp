@@ -1,10 +1,10 @@
 #include "robot_process_tutorials/robot_process_tutorials.h"
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char *argv[]) {
 
   using namespace robot_process_tutorials;
 
-  RobotProcessTutorials rbt;
+  RobotProcessTutorials rbt(argc, argv);
   rbt.run();
 
   return 0;

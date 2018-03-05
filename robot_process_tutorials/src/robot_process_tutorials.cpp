@@ -12,7 +12,6 @@ namespace robot_process_tutorials {
 
   }
 
-
   void RobotProcessTutorials::onStart()
   {
 
@@ -22,7 +21,6 @@ namespace robot_process_tutorials {
   {
 
   }
-
 
   void RobotProcessTutorials::onPause()
   {

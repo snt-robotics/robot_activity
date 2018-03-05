@@ -10,6 +10,8 @@ class RobotProcessTutorials : public robot_process::RobotProcess
 {
 public:
 
+  using RobotProcess::RobotProcess;
+
   void onCreate();
   void onConfigure();
 
