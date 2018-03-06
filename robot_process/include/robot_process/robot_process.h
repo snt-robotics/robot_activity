@@ -11,10 +11,13 @@
 #include <thread>
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 
 #include <std_srvs/Empty.h>
 #include <robot_process_msgs/State.h>
 #include <robot_process_msgs/Error.h>
+
+#include "robot_process/isolated_async_timer.h"
 
 namespace robot_process {
 
@@ -34,7 +37,10 @@ protected:
   ros::NodeHandlePtr node_handle_private_;
 
   virtual void onCreate() {};
+  virtual void onTerminate() {};
+
   virtual void onConfigure() {};
+  virtual void onUnconfigure() {};
 
   virtual void onStart() {};
   virtual void onStop() {};
@@ -59,18 +65,21 @@ private:
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
-  std::thread heartbeat_thread_;
+  uint8_t node_state_ = 0;
+
+  std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
 
   void create();
+  void terminate();
+
   void configure();
+  void unconfigure();
 
   void start();
   void stop();
 
   void resume();
   void pause();
-
-  void terminate();
 
   void notifyState();
 
