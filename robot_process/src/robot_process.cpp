@@ -46,16 +46,13 @@ namespace robot_process {
     ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
     ROS_INFO("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
 
-    boost::function<void(const ros::TimerEvent& e)> heartbeat_callback =
-    [this](const ros::TimerEvent& e)
-    {
-      notifyState();
-      ROS_INFO("Sent heartbeat");
-    };
+    boost::function<void(void)> heartbeat_callback = [this]() { notifyState(); };
+    heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(
+      *node_handle_,
+      heartbeat_callback,
+      1.0f);
 
-    heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(*node_handle_, heartbeat_callback, 1.0f);
-
-
+    //terminate_service_server_ = node_handle_->advertiseService("terminate", )
 
   }
 
@@ -102,14 +99,89 @@ namespace robot_process {
 
   }
 
-  void RobotProcess::notifyState()
+  void RobotProcess::notifyState() const
   {
     robot_process_msgs::State state_msg;
     state_msg.header.stamp = ros::Time::now();
     state_msg.node_name = node_name_;
-    state_msg.state = node_state_;
+    state_msg.state =  static_cast<uint8_t>(current_state_);
     process_state_pub_.publish(state_msg);
   }
 
+  void RobotProcess::transitionToState(const State& new_state)
+  {
+    while (current_state_ != new_state)
+    {
+      /* code */
+    }
+  }
+
+  void RobotProcess::changeState(const State& new_state)
+  {
+    switch (new_state) {
+      case State:: :
+    }
+  }
+
+  std::ostream& operator<<(std::ostream& os, State state)
+  {
+    switch(state)
+    {
+      case State::INVALID      : os << "INVALID";      break;
+      case State::LAUNCHING    : os << "LAUNCHING";    break;
+      case State::UNCONFIGURED : os << "UNCONFIGURED"; break;
+      case State::STOPPED      : os << "STOPPED";      break;
+      case State::PAUSED       : os << "PAUSED";       break;
+      case State::RUNNING      : os << "RUNNING";      break;
+      case State::TERMINATED   : os << "TERMINATED";   break;
+      default                  : os.setstate(std::ios_base::failbit);
+    }
+    return os;
+  }
+
+  const static StateTransitionPaths STATE_TRANSITIONS_PATHS =
+  {
+    {
+      /* State::INVALID to other states */
+      State::INVALID, State::INVALID, State::INVALID, State::INVALID,
+      State::INVALID, State::INVALID, State::INVALID
+    },
+    {
+      /* State::LAUNCHING to other states */
+      State::INVALID, State::LAUNCHING, State::UNCONFIGURED,
+      State::UNCONFIGURED, State::UNCONFIGURED, State::UNCONFIGURED,
+      State::UNCONFIGURED
+    },
+    {
+      /* State::UNCONFIGURED to other states */
+      State::INVALID, State::INVALID, State::UNCONFIGURED,
+      State::STOPPED, State::STOPPED, State::STOPPED,
+      State::TERMINATED
+    },
+    {
+      /* State::STOPPED to other states */
+      State::INVALID, State::INVALID, State::UNCONFIGURED,
+      State::STOPPED, State::PAUSED, State::PAUSED,
+      State::UNCONFIGURED
+    },
+    {
+      /* State::PAUSED to other states */
+      State::INVALID, State::INVALID, State::STOPPED,
+      State::STOPPED, State::PAUSED, State::RUNNING,
+      State::STOPPED
+    },
+    {
+      /* State::RUNNING to other states */
+      State::INVALID, State::INVALID, State::PAUSED,
+      State::PAUSED, State::PAUSED, State::PAUSED,
+      State::PAUSED
+    },
+    {
+      /* State::TERMINATED to other states */
+      State::INVALID, State::INVALID, State::INVALID,
+      State::INVALID, State::INVALID, State::INVALID,
+      State::INVALID
+    },
+  };
 
 } // namespace robot_process

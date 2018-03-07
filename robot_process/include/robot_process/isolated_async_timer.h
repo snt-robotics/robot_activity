@@ -13,6 +13,10 @@
 
 namespace robot_process {
 
+typedef boost::function<void(void)> LambdaCallback;
+
+ros::TimerCallback convert_to_timer_callback(const LambdaCallback& callback);
+
 class IsolatedAsyncTimer
 {
 public:
@@ -20,12 +24,22 @@ public:
   IsolatedAsyncTimer() = delete;
 
   IsolatedAsyncTimer(const ros::NodeHandle& node_handle,
+                     const LambdaCallback& callback,
+                     const float& frequency,
+                     bool oneshot = false,
+                     bool autostart = true)
+    : IsolatedAsyncTimer(node_handle,
+                         convert_to_timer_callback(callback),
+                         frequency,
+                         oneshot,
+                         autostart) { }
+
+  IsolatedAsyncTimer(const ros::NodeHandle& node_handle,
                      const ros::TimerCallback& callback,
                      const float& frequency,
                      bool oneshot = false,
                      bool autostart = true)
     : node_handle_(node_handle),
-      period_(),
       timer_ops_(),
       callback_(callback),
       callback_queue_()
@@ -34,6 +48,7 @@ public:
     timer_ops_.callback = callback_;
     timer_ops_.callback_queue = &callback_queue_;
     timer_ops_.oneshot = oneshot;
+    timer_ops_.autostart = autostart;
 
     timer_ = std::make_shared<ros::Timer>();
     *timer_ = node_handle_.createTimer(timer_ops_);
@@ -46,9 +61,7 @@ public:
 
   void start() { timer_->start(); }
   void stop() { timer_->stop(); }
-
   bool isValid() { return timer_->isValid(); }
-
   void setPeriod(const ros::Duration& period, bool reset = true)
   {
     timer_->setPeriod(period, reset);
@@ -58,7 +71,6 @@ private:
 
   ros::NodeHandle node_handle_;
 
-  ros::Duration period_;
   ros::TimerOptions timer_ops_;
   ros::TimerCallback callback_;
   ros::CallbackQueue callback_queue_;
@@ -67,6 +79,11 @@ private:
   std::shared_ptr<ros::AsyncSpinner> spinner_;
 
 };
+
+ros::TimerCallback convert_to_timer_callback(const LambdaCallback& callback)
+{
+  return [callback](const ros::TimerEvent& e) { callback(); };
+}
 
 } // namespace robot_process
 
