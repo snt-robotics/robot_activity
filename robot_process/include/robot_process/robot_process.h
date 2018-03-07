@@ -66,21 +66,16 @@ private:
 
   std::string node_name_;
 
-  ros::ServiceServer terminate_service_server_;
-  bool terminate_service_callback(std_srvs::Empty::Request& req,
-                                  std_srvs::Empty::Response& res);
+  ros::ServiceServer terminate_server_;
 
-  ros::ServiceServer reconfigure_service_server_;
-  bool reconfigure_service_callback(std_srvs::Empty::Request& req,
-                                    std_srvs::Empty::Response& res);
+  ros::ServiceServer reconfigure_server_;
+  ros::ServiceServer restart_server_;
 
-  ros::ServiceServer restart_service_server_;
+  ros::ServiceServer start_server_;
+  ros::ServiceServer stop_server_;
 
-  ros::ServiceServer start_service_server_;
-  ros::ServiceServer stop_service_server_;
-
-  ros::ServiceServer resume_service_server_;
-  ros::ServiceServer pause_service_server_;
+  ros::ServiceServer resume_server_;
+  ros::ServiceServer pause_server_;
 
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
@@ -102,12 +97,11 @@ private:
   void pause();
 
   void notifyState() const;
-  void changeState(const State& new_state);
-  void transitionToState(const State& new_state);
+  bool changeState(const State& new_state);
+  bool transitionToState(const State& new_state);
 
 
-  //typedef void (RobotProcess::*TransitionCallback)();
-  typedef std::function<void(const RobotProcess)> TransitionCallback;
+  typedef void (RobotProcess::*TransitionCallback)();
   typedef TransitionCallback StateTransitions
     [static_cast<uint8_t>(State::Count)]
     [static_cast<uint8_t>(State::Count)];
@@ -115,8 +109,6 @@ private:
   typedef State StateTransitionPaths
     [static_cast<uint8_t>(State::Count)]
     [static_cast<uint8_t>(State::Count)];
-
-
 
   const static StateTransitions STATE_TRANSITIONS;
   const static StateTransitionPaths STATE_TRANSITIONS_PATHS;

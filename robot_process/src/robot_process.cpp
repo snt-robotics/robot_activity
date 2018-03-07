@@ -1,8 +1,7 @@
 #include "robot_process/robot_process.h"
 
-#define PRINT_DEBUG_STATE(state) \
-  ROS_INFO("[%s] ["#state"] METHOD INVOKED", node_name_.c_str())
-
+#define PRINT_FUNC_CALL(state) \
+  ROS_DEBUG_STREAM(#state << "() method called")
 
 namespace robot_process {
 
@@ -20,20 +19,18 @@ namespace robot_process {
 
   RobotProcess::~RobotProcess()
   {
-    ROS_INFO("RobotProcess destructor");
+    ROS_DEBUG("RobotProcess destructor");
   }
 
   void RobotProcess::run(bool autostart)
   {
-    ROS_INFO("[%s] [RUN] METHOD INVOKED", node_name_.c_str());
-
-    transitionToState(State::RUNNING);
-
+    autostart_ = autostart;
+    transitionToState(State::UNCONFIGURED);
   }
 
   void RobotProcess::create()
   {
-    PRINT_DEBUG_STATE("CREATE");
+    PRINT_FUNC_CALL("create");
 
     node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle);
     node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
@@ -42,7 +39,7 @@ namespace robot_process {
 
     float heartbeat_rate;
     ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
-    ROS_INFO("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
+    ROS_DEBUG("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
 
     boost::function<void(void)> heartbeat_callback = [this]() { notifyState(); };
     heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(
@@ -50,97 +47,130 @@ namespace robot_process {
       heartbeat_callback,
       1.0f);
 
-    //changeState(State::UNCON)
-    //terminate_service_server_ = node_handle_->advertiseService("terminate", )
+    bool autostart;
+    ros::param::param<bool>("~autostart", autostart, false);
+    autostart_ ||= autostart;
+    ROS_DEBUG("autostart = %d", autostart_);
+
+    if (autostart_)
+      transitionToState(State::RUNNING);
+    else
+      transitionToState(State::STOPPED);
 
   }
 
   void RobotProcess::terminate()
   {
-    PRINT_DEBUG_STATE("TERMINATE");
-
+    PRINT_FUNC_CALL("terminate");
+    onTerminate();
   }
 
   void RobotProcess::configure()
   {
-    ROS_INFO("[%s] [CONFIGURE] METHOD INVOKED", node_name_.c_str());
-
-    ros::param::param<bool>("~autostart", autostart_, false);
-    ROS_INFO("autostart = %d", autostart_);
-
+    PRINT_FUNC_CALL("configure");
+    onConfigure();
   }
 
   void RobotProcess::unconfigure()
   {
-    ROS_INFO("[%s] [UNCONFIGURE] METHOD INVOKED", node_name_.c_str());
-
+    PRINT_FUNC_CALL("unconfigure");
+    onUnconfigure();
   }
 
   void RobotProcess::start()
   {
-    ROS_INFO("[%s] [START] METHOD INVOKED", node_name_.c_str());
+    PRINT_FUNC_CALL("start");
+    onStart();
   }
 
   void RobotProcess::stop()
   {
-    ROS_INFO("[%s] [STOP] METHOD INVOKED", node_name_.c_str());
+    PRINT_FUNC_CALL("stop");
+    onStop();
   }
 
   void RobotProcess::resume()
   {
-    ROS_INFO("[%s] [RESUME] METHOD INVOKED", node_name_.c_str());
-
+    PRINT_FUNC_CALL("resume");
+    onResume();
   }
 
   void RobotProcess::pause()
   {
-    ROS_INFO("[%s] [PAUSE] METHOD INVOKED", node_name_.c_str());
-
+    PRINT_FUNC_CALL("pause");
+    onPause();
   }
+
+  // void RobotProcess::registerStateChangeRequest(const State& state)
+  // {
+  //   callback[&](std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+  //     {
+  //       return transitionToState(state);
+  //     };
+  //   }
+
+  //   auto options = ros::AdvertiseServiceOptions::create("terminate",
+
+  //     );
+
+
+  //   terminate_service_server_ = node_handle_->advertiseService(
+  //     "terminate",
+  //     make_service_callback(State::Terminate));
+  // }
 
   void RobotProcess::notifyState() const
   {
+    ROS_DEBUG("Heartbeat sent!");
     robot_process_msgs::State state_msg;
     state_msg.header.stamp = ros::Time::now();
     state_msg.node_name = node_name_;
-    state_msg.state =  static_cast<uint8_t>(current_state_);
+    state_msg.state = static_cast<uint8_t>(current_state_);
     process_state_pub_.publish(state_msg);
   }
 
-  void RobotProcess::transitionToState(const State& goal_state)
+  bool RobotProcess::transitionToState(const State& goal_state)
   {
+    if (current_state_ == goal_state)
+    {
+      ROS_WARN_STREAM( "Node is already at state " << goal_state );
+      return false;
+    }
+
     while (current_state_ != goal_state)
     {
-      uint8_t from_state = static_cast<uint8_t>(current_state_);
-      uint8_t to_state = static_cast<uint8_t>(goal_state);
+      auto from_state = static_cast<uint8_t>(current_state_);
+      auto to_state = static_cast<uint8_t>(goal_state);
       State next_state = STATE_TRANSITIONS_PATHS[from_state][to_state];
-      ROS_INFO_STREAM( current_state_ << " " << goal_state << " " << next_state );
       if (next_state == State::INVALID)
       {
-        ROS_FATAL_STREAM( "There is no transition path from [" << current_state_
+        ROS_WARN_STREAM( "There is no transition path from [" << current_state_
           << "] to [" << goal_state << "]" );
-        return;
+        return false;
       }
       changeState(next_state);
-      ROS_INFO("1");
     }
+    return true;
   }
 
-  void RobotProcess::changeState(const State& new_state)
+  bool RobotProcess::changeState(const State& new_state)
   {
     uint8_t from_state = static_cast<uint8_t>(current_state_);
     uint8_t to_state = static_cast<uint8_t>(new_state);
     TransitionCallback callback = STATE_TRANSITIONS[from_state][to_state];
     if (callback == nullptr)
     {
-      ROS_FATAL_STREAM( "Tried changing state from [" << current_state_
-        << "] to [" << new_state << "]. Transition does NOT exist!" );
+      ROS_FATAL_STREAM(
+        "Tried changing state from [" << current_state_
+        << "] to [" << new_state << "]. Transition does NOT exist!");
       return;
     }
-    ROS_INFO_STREAM( "Changing state from [" << current_state_
-      << "] to [" << new_state << "]");
+    ROS_DEBUG_STREAM(
+      "Changing state from [" << current_state_ << "] to [" 
+      << new_state << "]");
     current_state_ = new_state;
-    //callback(*this);
+    (this->*callback)();
+    notifyState();
   }
 
   std::ostream& operator<<(std::ostream& os, State state)

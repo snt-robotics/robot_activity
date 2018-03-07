@@ -2,6 +2,9 @@
 
   <arg name="autostart" default="true" />
 
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(find robot_process)/rosconsole.conf"/>
+
   <node pkg="robot_process_tutorials" type="robot_process_tutorials_node" name="robot_process_tutorials" output="screen">
     <param name="autostart" type="bool" value="$(arg autostart)" />
   </node>
