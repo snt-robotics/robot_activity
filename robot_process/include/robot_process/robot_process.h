@@ -31,10 +31,6 @@ enum class State : std::uint8_t {
   Count = 7
 };
 
-typedef State StateTransitionPaths
-  [static_cast<uint8_t>(State::Count)]
-  [static_cast<uint8_t>(State::Count)];
-
 std::ostream& operator<<(std::ostream& os, State state);
 
 class RobotProcess
@@ -89,7 +85,7 @@ private:
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
-  State current_state_ = State::INVALID;
+  State current_state_ = State::LAUNCHING;
 
   std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
 
@@ -105,9 +101,25 @@ private:
   void resume();
   void pause();
 
-  void notifyState();
+  void notifyState() const;
+  void changeState(const State& new_state);
+  void transitionToState(const State& new_state);
 
-  const static StateTransitionPaths stateTransitionPaths;
+
+  //typedef void (RobotProcess::*TransitionCallback)();
+  typedef std::function<void(const RobotProcess)> TransitionCallback;
+  typedef TransitionCallback StateTransitions
+    [static_cast<uint8_t>(State::Count)]
+    [static_cast<uint8_t>(State::Count)];
+
+  typedef State StateTransitionPaths
+    [static_cast<uint8_t>(State::Count)]
+    [static_cast<uint8_t>(State::Count)];
+
+
+
+  const static StateTransitions STATE_TRANSITIONS;
+  const static StateTransitionPaths STATE_TRANSITIONS_PATHS;
 
 };
 

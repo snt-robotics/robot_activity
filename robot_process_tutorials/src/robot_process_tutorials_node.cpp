@@ -7,5 +7,7 @@ int main(int argc, char *argv[]) {
   RobotProcessTutorials rbt(argc, argv);
   rbt.run();
 
+  ros::spin();
+
   return 0;
 }

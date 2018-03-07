@@ -1,7 +1,7 @@
 #include "robot_process/robot_process.h"
 
 #define PRINT_DEBUG_STATE(state) \
-  ROS_DEBUG("[%s] [#state] METHOD INVOKED", node_name_.c_str())
+  ROS_INFO("[%s] ["#state"] METHOD INVOKED", node_name_.c_str())
 
 
 namespace robot_process {
@@ -20,22 +20,20 @@ namespace robot_process {
 
   RobotProcess::~RobotProcess()
   {
-    ROS_INFO("2");
+    ROS_INFO("RobotProcess destructor");
   }
 
   void RobotProcess::run(bool autostart)
   {
-    ROS_DEBUG("[%s] [RUN] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [RUN] METHOD INVOKED", node_name_.c_str());
 
-    create();
-
-    sleep(2);
+    transitionToState(State::RUNNING);
 
   }
 
   void RobotProcess::create()
   {
-    PRINT_DEBUG_STATE("TERMINATE");
+    PRINT_DEBUG_STATE("CREATE");
 
     node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle);
     node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
@@ -52,6 +50,7 @@ namespace robot_process {
       heartbeat_callback,
       1.0f);
 
+    //changeState(State::UNCON)
     //terminate_service_server_ = node_handle_->advertiseService("terminate", )
 
   }
@@ -64,7 +63,7 @@ namespace robot_process {
 
   void RobotProcess::configure()
   {
-    ROS_DEBUG("[%s] [CONFIGURE] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [CONFIGURE] METHOD INVOKED", node_name_.c_str());
 
     ros::param::param<bool>("~autostart", autostart_, false);
     ROS_INFO("autostart = %d", autostart_);
@@ -73,29 +72,29 @@ namespace robot_process {
 
   void RobotProcess::unconfigure()
   {
-    ROS_DEBUG("[%s] [UNCONFIGURE] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [UNCONFIGURE] METHOD INVOKED", node_name_.c_str());
 
   }
 
   void RobotProcess::start()
   {
-    ROS_DEBUG("[%s] [START] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [START] METHOD INVOKED", node_name_.c_str());
   }
 
   void RobotProcess::stop()
   {
-    ROS_DEBUG("[%s] [STOP] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [STOP] METHOD INVOKED", node_name_.c_str());
   }
 
   void RobotProcess::resume()
   {
-    ROS_DEBUG("[%s] [RESUME] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [RESUME] METHOD INVOKED", node_name_.c_str());
 
   }
 
   void RobotProcess::pause()
   {
-    ROS_DEBUG("[%s] [PAUSE] METHOD INVOKED", node_name_.c_str());
+    ROS_INFO("[%s] [PAUSE] METHOD INVOKED", node_name_.c_str());
 
   }
 
@@ -108,19 +107,40 @@ namespace robot_process {
     process_state_pub_.publish(state_msg);
   }
 
-  void RobotProcess::transitionToState(const State& new_state)
+  void RobotProcess::transitionToState(const State& goal_state)
   {
-    while (current_state_ != new_state)
+    while (current_state_ != goal_state)
     {
-      /* code */
+      uint8_t from_state = static_cast<uint8_t>(current_state_);
+      uint8_t to_state = static_cast<uint8_t>(goal_state);
+      State next_state = STATE_TRANSITIONS_PATHS[from_state][to_state];
+      ROS_INFO_STREAM( current_state_ << " " << goal_state << " " << next_state );
+      if (next_state == State::INVALID)
+      {
+        ROS_FATAL_STREAM( "There is no transition path from [" << current_state_
+          << "] to [" << goal_state << "]" );
+        return;
+      }
+      changeState(next_state);
+      ROS_INFO("1");
     }
   }
 
   void RobotProcess::changeState(const State& new_state)
   {
-    switch (new_state) {
-      case State:: :
+    uint8_t from_state = static_cast<uint8_t>(current_state_);
+    uint8_t to_state = static_cast<uint8_t>(new_state);
+    TransitionCallback callback = STATE_TRANSITIONS[from_state][to_state];
+    if (callback == nullptr)
+    {
+      ROS_FATAL_STREAM( "Tried changing state from [" << current_state_
+        << "] to [" << new_state << "]. Transition does NOT exist!" );
+      return;
     }
+    ROS_INFO_STREAM( "Changing state from [" << current_state_
+      << "] to [" << new_state << "]");
+    current_state_ = new_state;
+    //callback(*this);
   }
 
   std::ostream& operator<<(std::ostream& os, State state)
@@ -139,7 +159,19 @@ namespace robot_process {
     return os;
   }
 
-  const static StateTransitionPaths STATE_TRANSITIONS_PATHS =
+  const RobotProcess::StateTransitions RobotProcess::STATE_TRANSITIONS =
+  {
+    {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, // State::INVALID
+    {nullptr, nullptr, &RobotProcess::create, nullptr, nullptr, nullptr, nullptr}, // State::LAUNCHING
+    {nullptr, nullptr, nullptr, &RobotProcess::configure, nullptr, nullptr, &RobotProcess::terminate}, // State::UNCONFIGURED
+    {nullptr, nullptr, &RobotProcess::unconfigure, nullptr, &RobotProcess::start, nullptr, nullptr}, // State::STOPPED
+    {nullptr, nullptr, nullptr, &RobotProcess::stop, nullptr, &RobotProcess::resume, nullptr}, // State::PAUSED
+    {nullptr, nullptr, nullptr, nullptr, nullptr, &RobotProcess::pause, nullptr}, // State::RUNNING
+    {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr} // State::TERMINATED
+  };
+
+
+  const RobotProcess::StateTransitionPaths RobotProcess::STATE_TRANSITIONS_PATHS =
   {
     {
       /* State::INVALID to other states */
