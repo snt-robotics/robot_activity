@@ -24,20 +24,36 @@ namespace robot_process {
     ROS_DEBUG("RobotProcess destructor");
   }
 
-  void RobotProcess::run(bool autostart)
+  RobotProcess& RobotProcess::init()
   {
-    autostart_ = autostart;
-    transitionToState(State::UNCONFIGURED);
-  }
-
-  void RobotProcess::create()
-  {
-    PRINT_FUNC_CALL("create");
-
     node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle);
     node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
 
-    process_state_pub_ = node_handle_->advertise<robot_process_msgs::State>("heartbeat", 1);
+    ros::param::param<bool>("~wait_for_supervisor", wait_for_supervisor_, true);
+    ROS_DEBUG("wait_for_supervisor = %d", wait_for_supervisor_);
+
+    process_state_pub_ = node_handle_->advertise<robot_process_msgs::State>("heartbeat", 0, true);
+
+    if (wait_for_supervisor_)
+    {
+      ros::Rate poll_rate(100);
+      while (process_state_pub_.getNumSubscribers() == 0)
+        poll_rate.sleep();
+    }
+
+    notifyState();
+
+    terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED});
+    reconfigure_server_ = registerStateChangeRequest("reconfigure",
+      {
+        State::UNCONFIGURED,
+        autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
+      });
+
+    restart_server_ = registerStateChangeRequest("restart", {State::STOPPED, State::RUNNING});
+    start_server_   = registerStateChangeRequest("start", {State::RUNNING});
+    stop_server_    = registerStateChangeRequest("stop",  {State::STOPPED});
+    pause_server_   = registerStateChangeRequest("pause", {State::PAUSED});
 
     float heartbeat_rate;
     ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
@@ -47,20 +63,34 @@ namespace robot_process {
     heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(
       *node_handle_,
       heartbeat_callback,
-      1.0f);
+      heartbeat_rate);
 
-    bool autostart;
-    ros::param::param<bool>("~autostart", autostart, false);
+    ros::param::param<bool>("~autostart", autostart_, false);
+
+    state_request_spinner_ = std::make_shared<ros::AsyncSpinner>(1, &state_request_callback_queue_);
+    state_request_spinner_->start();
+
+    return *this;
+  }
+
+  void RobotProcess::run(bool autostart)
+  {
     autostart_ = autostart_ || autostart;
     ROS_DEBUG("autostart = %d", autostart_);
-
-    registerStateChangeRequest("terminate", std::vector<State> {State::TERMINATED});
 
     if (autostart_)
       transitionToState(State::RUNNING);
     else
       transitionToState(State::STOPPED);
 
+    while (ros::ok()) ros::spinOnce();
+
+  }
+
+  void RobotProcess::create()
+  {
+    PRINT_FUNC_CALL("create");
+    onCreate();
   }
 
   void RobotProcess::terminate()
@@ -105,12 +135,14 @@ namespace robot_process {
     onPause();
   }
 
-  void RobotProcess::registerStateChangeRequest(
+  ros::ServiceServer RobotProcess::registerStateChangeRequest(
     const std::string& service_name,
     const std::vector<State>& states)
   {
+    ROS_DEBUG_STREAM(
+      "Registering state transition request for state " << service_name);
     using namespace std_srvs;
-    EmptyServiceCallback callback = [&](Empty::Request& req, Empty::Response& res)
+    EmptyServiceCallback callback = [=](Empty::Request& req, Empty::Response& res)
     {
       bool success = true;
       for (const auto& s : states)
@@ -127,7 +159,7 @@ namespace robot_process {
       &state_request_callback_queue_
     );
 
-    node_handle_->advertiseService(options);
+    return node_handle_private_->advertiseService(options);
   }
 
   void RobotProcess::notifyState() const
@@ -171,7 +203,7 @@ namespace robot_process {
     TransitionCallback callback = STATE_TRANSITIONS[from_state][to_state];
     if (callback == nullptr)
     {
-      ROS_FATAL_STREAM(
+      ROS_FATAL_STREAM_ONCE(
         "Tried changing state from [" << current_state_
         << "] to [" << new_state << "]. Transition does NOT exist!");
       return;
@@ -207,7 +239,7 @@ namespace robot_process {
     {nullptr, nullptr, nullptr, &RobotProcess::configure, nullptr, nullptr, &RobotProcess::terminate}, // State::UNCONFIGURED
     {nullptr, nullptr, &RobotProcess::unconfigure, nullptr, &RobotProcess::start, nullptr, nullptr}, // State::STOPPED
     {nullptr, nullptr, nullptr, &RobotProcess::stop, nullptr, &RobotProcess::resume, nullptr}, // State::PAUSED
-    {nullptr, nullptr, nullptr, nullptr, nullptr, &RobotProcess::pause, nullptr}, // State::RUNNING
+    {nullptr, nullptr, nullptr, nullptr, &RobotProcess::pause, nullptr, nullptr}, // State::RUNNING
     {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr} // State::TERMINATED
   };
 

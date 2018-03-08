@@ -5,9 +5,7 @@ int main(int argc, char *argv[]) {
   using namespace robot_process_tutorials;
 
   RobotProcessTutorials rbt(argc, argv);
-  rbt.run();
-
-  ros::spin();
+  rbt.init().run();
 
   return 0;
 }

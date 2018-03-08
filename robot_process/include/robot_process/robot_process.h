@@ -42,6 +42,7 @@ public:
   RobotProcess(int argc, char* argv[], std::string name);
   ~RobotProcess();
 
+  RobotProcess& init();
   void run(bool autostart = false);
 
 protected:
@@ -63,9 +64,15 @@ protected:
 
 private:
 
+  bool wait_for_supervisor_ = true;
+
   bool autostart_ = false;
+  bool autostart_after_reconfigure_ = false;
 
   std::string node_name_;
+
+  ros::CallbackQueue state_request_callback_queue_;
+  std::shared_ptr<ros::AsyncSpinner> state_request_spinner_;
 
   ros::ServiceServer terminate_server_;
 
@@ -75,13 +82,12 @@ private:
   ros::ServiceServer start_server_;
   ros::ServiceServer stop_server_;
 
-  ros::ServiceServer resume_server_;
   ros::ServiceServer pause_server_;
 
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
-  ros::CallbackQueue state_request_callback_queue_;
+
 
   State current_state_ = State::LAUNCHING;
 
@@ -103,7 +109,7 @@ private:
   void changeState(const State& new_state);
   bool transitionToState(const State& new_state);
 
-  void registerStateChangeRequest(
+  ros::ServiceServer registerStateChangeRequest(
     const std::string& service_name,
     const std::vector<State>& states);
 

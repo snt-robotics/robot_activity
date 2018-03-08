@@ -13,7 +13,10 @@ public:
   using RobotProcess::RobotProcess;
 
   void onCreate();
+  void onTerminate();
+
   void onConfigure();
+  void onUnconfigure();
 
   void onStart();
   void onStop();
