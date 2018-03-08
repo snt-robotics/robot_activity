@@ -11,6 +11,7 @@
 #include <thread>
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 
 #include <std_srvs/Empty.h>
 #include <robot_process_msgs/State.h>
@@ -80,6 +81,8 @@ private:
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
+  ros::CallbackQueue state_request_callback_queue_;
+
   State current_state_ = State::LAUNCHING;
 
   std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
@@ -97,10 +100,16 @@ private:
   void pause();
 
   void notifyState() const;
-  bool changeState(const State& new_state);
+  void changeState(const State& new_state);
   bool transitionToState(const State& new_state);
 
+  void registerStateChangeRequest(
+    const std::string& service_name,
+    const std::vector<State>& states);
 
+  typedef boost::function<bool(
+    std_srvs::Empty::Request& req,
+    std_srvs::Empty::Response& res)> EmptyServiceCallback;
   typedef void (RobotProcess::*TransitionCallback)();
   typedef TransitionCallback StateTransitions
     [static_cast<uint8_t>(State::Count)]

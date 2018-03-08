@@ -6,13 +6,15 @@
 namespace robot_process {
 
   RobotProcess::RobotProcess(int argc, char* argv[])
+    : state_request_callback_queue_()
   {
     ros::init(argc, argv, "robot_process", ros::init_options::AnonymousName);
     node_name_ = ros::this_node::getName();
   }
 
   RobotProcess::RobotProcess(int argc, char* argv[], std::string name)
-    : node_name_(name)
+    : node_name_(name),
+      state_request_callback_queue_()
   {
     ros::init(argc, argv, name);
   }
@@ -49,8 +51,10 @@ namespace robot_process {
 
     bool autostart;
     ros::param::param<bool>("~autostart", autostart, false);
-    autostart_ ||= autostart;
+    autostart_ = autostart_ || autostart;
     ROS_DEBUG("autostart = %d", autostart_);
+
+    registerStateChangeRequest("terminate", std::vector<State> {State::TERMINATED});
 
     if (autostart_)
       transitionToState(State::RUNNING);
@@ -101,23 +105,30 @@ namespace robot_process {
     onPause();
   }
 
-  // void RobotProcess::registerStateChangeRequest(const State& state)
-  // {
-  //   callback[&](std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
-  //     {
-  //       return transitionToState(state);
-  //     };
-  //   }
+  void RobotProcess::registerStateChangeRequest(
+    const std::string& service_name,
+    const std::vector<State>& states)
+  {
+    using namespace std_srvs;
+    EmptyServiceCallback callback = [&](Empty::Request& req, Empty::Response& res)
+    {
+      bool success = true;
+      for (const auto& s : states)
+      {
+        success = success && transitionToState(s);
+      }
+      return success;
+    };
 
-  //   auto options = ros::AdvertiseServiceOptions::create("terminate",
+    auto options = ros::AdvertiseServiceOptions::create<Empty>(
+      service_name,
+      callback,
+      ros::VoidConstPtr(),
+      &state_request_callback_queue_
+    );
 
-  //     );
-
-
-  //   terminate_service_server_ = node_handle_->advertiseService(
-  //     "terminate",
-  //     make_service_callback(State::Terminate));
-  // }
+    node_handle_->advertiseService(options);
+  }
 
   void RobotProcess::notifyState() const
   {
@@ -153,7 +164,7 @@ namespace robot_process {
     return true;
   }
 
-  bool RobotProcess::changeState(const State& new_state)
+  void RobotProcess::changeState(const State& new_state)
   {
     uint8_t from_state = static_cast<uint8_t>(current_state_);
     uint8_t to_state = static_cast<uint8_t>(new_state);
@@ -166,7 +177,7 @@ namespace robot_process {
       return;
     }
     ROS_DEBUG_STREAM(
-      "Changing state from [" << current_state_ << "] to [" 
+      "Changing state from [" << current_state_ << "] to ["
       << new_state << "]");
     current_state_ = new_state;
     (this->*callback)();
