@@ -13,24 +13,22 @@
 
 namespace robot_process {
 
-typedef boost::function<void(void)> LambdaCallback;
-
-ros::TimerCallback convert_to_timer_callback(const LambdaCallback& callback);
-
 class IsolatedAsyncTimer
 {
 public:
 
+  typedef boost::function<void(void)> LambdaCallback;
+
   IsolatedAsyncTimer() = delete;
 
   IsolatedAsyncTimer(const ros::NodeHandle& node_handle,
-                     const LambdaCallback& callback,
+                     const IsolatedAsyncTimer::LambdaCallback& callback,
                      const float& frequency,
                      bool stoppable = true,
                      bool autostart = true,
                      bool oneshot = false)
     : IsolatedAsyncTimer(node_handle,
-                         convert_to_timer_callback(callback),
+                         to_timer_callback(callback),
                          frequency,
                          stoppable,
                          autostart,
@@ -75,6 +73,13 @@ public:
     timer_->setPeriod(period, reset);
   }
 
+  static ros::TimerCallback to_timer_callback(
+    const IsolatedAsyncTimer::LambdaCallback& callback)
+  {
+    return [callback](const ros::TimerEvent& e) { callback(); };
+  }
+
+
 private:
 
   ros::NodeHandle node_handle_;
@@ -89,11 +94,6 @@ private:
   bool stoppable_ = true;
 
 };
-
-ros::TimerCallback convert_to_timer_callback(const LambdaCallback& callback)
-{
-  return [callback](const ros::TimerEvent& e) { callback(); };
-}
 
 } // namespace robot_process
 

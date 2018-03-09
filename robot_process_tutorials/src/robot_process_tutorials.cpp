@@ -12,11 +12,12 @@ namespace robot_process_tutorials {
   {
     ROS_INFO("onCreate");
 
-    robot_process::LambdaCallback cb =
-      [this]() mutable { ROS_INFO("Stoppable %d", counter++); };
-    registerIsolatedTimer(cb, 4.0, true);
+    // robot_process::IsolatedAsyncTimer::LambdaCallback cb =
+    //   [this]() mutable { ROS_INFO("Stoppable %d", counter++); };
+    // registerIsolatedTimer(cb, 4.0, true);
 
     //registerIsolatedTimer(&RobotProcessTutorials::timerCallback, 4.0, false);
+    registerIsolatedTimer(std::bind(&RobotProcessTutorials::timerCallback, this), 4.0, false);
 
   }
 

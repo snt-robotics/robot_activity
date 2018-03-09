@@ -104,9 +104,10 @@ namespace robot_process {
     spinner.start();
   }
 
-  void RobotProcess::registerIsolatedTimer(const LambdaCallback& callback,
-                                           const float& frequency,
-                                           bool stoppable)
+  void RobotProcess::registerIsolatedTimer(
+    const IsolatedAsyncTimer::LambdaCallback& callback,
+    const float& frequency,
+    bool stoppable)
   {
     process_timers_.emplace_back(
       std::make_shared<robot_process::IsolatedAsyncTimer>(
@@ -119,9 +120,10 @@ namespace robot_process {
       ));
   }
 
-  void RobotProcess::registerIsolatedTimer(const MemberLambdaCallback& callback,
-                                           const float& frequency,
-                                           bool stoppable)
+  void RobotProcess::registerIsolatedTimer(
+    const MemberLambdaCallback& callback,
+    const float& frequency,
+    bool stoppable)
   {
     registerIsolatedTimer(
       boost::bind(callback, this),

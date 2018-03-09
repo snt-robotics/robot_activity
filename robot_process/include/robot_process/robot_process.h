@@ -17,11 +17,12 @@
 #include <robot_process_msgs/State.h>
 #include <robot_process_msgs/Error.h>
 
-#include "robot_process/isolated_async_timer.h"
+#include <robot_process/isolated_async_timer.h>
 
 namespace robot_process {
 
 class RobotProcess;
+class IsolatedAsyncTimer;
 
 typedef void (RobotProcess::*MemberLambdaCallback)();
 
@@ -58,7 +59,7 @@ protected:
   ros::NodeHandlePtr node_handle_;
   ros::NodeHandlePtr node_handle_private_;
 
-  void registerIsolatedTimer(const LambdaCallback& callback,
+  void registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
                              const float& frequency,
                              bool stoppable = true);
 

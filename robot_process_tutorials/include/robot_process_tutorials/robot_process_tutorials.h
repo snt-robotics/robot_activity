@@ -4,8 +4,6 @@
 #include <ros/ros.h>
 #include <robot_process/robot_process.h>
 
-#include "robot_process/isolated_async_timer.h"
-
 namespace robot_process_tutorials {
 
 class RobotProcessTutorials : public robot_process::RobotProcess
