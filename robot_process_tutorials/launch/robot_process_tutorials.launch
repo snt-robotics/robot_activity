@@ -1,7 +1,7 @@
 <launch>
-  <arg name="wait_for_supervisor" default="true" />
-  <arg name="autostart" default="true" />
-  <arg name="autostart_after_reconfigure" default="true"/>
+  <arg name="wait_for_supervisor" default="false" />
+  <arg name="autostart" default="false" />
+  <arg name="autostart_after_reconfigure" default="false"/>
   <arg name="heartbeat_rate" default="0.2"/>
 
   <env name="ROSCONSOLE_CONFIG_FILE"

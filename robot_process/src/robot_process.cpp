@@ -5,18 +5,26 @@
 
 namespace robot_process {
 
-  RobotProcess::RobotProcess(int argc, char* argv[])
-    : state_request_callback_queue_()
-  {
-    ros::init(argc, argv, "robot_process", ros::init_options::AnonymousName);
-    node_name_ = ros::this_node::getName();
-  }
-
-  RobotProcess::RobotProcess(int argc, char* argv[], std::string name)
-    : node_name_(name),
+  RobotProcess::RobotProcess(int argc, char* argv[],
+                             const std::string& name_space,
+                             const std::string& name)
+    : node_namespace_(name_space),
+      node_name_(name),
       state_request_callback_queue_()
   {
-    ros::init(argc, argv, name);
+    if (ros::isInitialized() == true)
+    {
+      node_name_ = ros::this_node::getName();
+      return;
+    }
+
+    if (node_name_.empty())
+    {
+      ros::init(argc, argv, "robot_process", ros::init_options::AnonymousName);
+      node_name_ = ros::this_node::getName();
+    }
+    else
+      ros::init(argc, argv, name);
   }
 
   RobotProcess::~RobotProcess()
@@ -24,20 +32,22 @@ namespace robot_process {
     ROS_DEBUG("RobotProcess destructor");
   }
 
-  RobotProcess& RobotProcess::init()
+  RobotProcess& RobotProcess::init(bool autostart)
   {
-    node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle);
-    node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
+
+    node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle(node_namespace_));
+    node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~" + node_namespace_));
 
     ros::param::param<bool>("~wait_for_supervisor", wait_for_supervisor_, true);
-    ROS_DEBUG("wait_for_supervisor = %d", wait_for_supervisor_);
+    ROS_INFO_STREAM("wait_for_supervisor = "
+      << std::boolalpha << wait_for_supervisor_);
 
-    process_state_pub_ = node_handle_->advertise<robot_process_msgs::State>("heartbeat", 0, true);
+    process_state_pub_ = node_handle_private_->advertise<robot_process_msgs::State>("heartbeat", 0, true);
 
     if (wait_for_supervisor_)
     {
       ros::Rate poll_rate(100);
-      while (process_state_pub_.getNumSubscribers() == 0)
+      while (process_state_pub_.getNumSubscribers() == 0 && ros::ok())
         poll_rate.sleep();
     }
 
@@ -57,34 +67,66 @@ namespace robot_process {
 
     float heartbeat_rate;
     ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
-    ROS_DEBUG("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
+    ROS_INFO("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
 
     boost::function<void(void)> heartbeat_callback = [this]() { notifyState(); };
     heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(
-      *node_handle_,
+      *node_handle_private_,
       heartbeat_callback,
-      heartbeat_rate);
+      heartbeat_rate,
+      false);
 
     ros::param::param<bool>("~autostart", autostart_, false);
 
     state_request_spinner_ = std::make_shared<ros::AsyncSpinner>(1, &state_request_callback_queue_);
     state_request_spinner_->start();
 
-    return *this;
-  }
-
-  void RobotProcess::run(bool autostart)
-  {
     autostart_ = autostart_ || autostart;
-    ROS_DEBUG("autostart = %d", autostart_);
+    ROS_INFO_STREAM("autostart = " << std::boolalpha << autostart_);
 
     if (autostart_)
       transitionToState(State::RUNNING);
     else
       transitionToState(State::STOPPED);
 
-    while (ros::ok()) ros::spinOnce();
+    return *this;
+  }
 
+  void RobotProcess::run(uint8_t threads)
+  {
+    ros::MultiThreadedSpinner spinner(threads);
+    spinner.spin();
+  }
+
+  void RobotProcess::runAsync(uint8_t threads)
+  {
+    ros::AsyncSpinner spinner(threads);
+    spinner.start();
+  }
+
+  void RobotProcess::registerIsolatedTimer(const LambdaCallback& callback,
+                                           const float& frequency,
+                                           bool stoppable)
+  {
+    process_timers_.emplace_back(
+      std::make_shared<robot_process::IsolatedAsyncTimer>(
+        *node_handle_private_,
+        callback,
+        frequency,
+        stoppable,
+        false,
+        false
+      ));
+  }
+
+  void RobotProcess::registerIsolatedTimer(const MemberLambdaCallback& callback,
+                                           const float& frequency,
+                                           bool stoppable)
+  {
+    registerIsolatedTimer(
+      boost::bind(callback, this),
+      frequency,
+      stoppable);
   }
 
   void RobotProcess::create()
@@ -126,12 +168,22 @@ namespace robot_process {
   void RobotProcess::resume()
   {
     PRINT_FUNC_CALL("resume");
+    for(const auto& timer : process_timers_)
+    {
+      ROS_DEBUG("Resuming timer");
+      timer->start();
+    }
     onResume();
   }
 
   void RobotProcess::pause()
   {
     PRINT_FUNC_CALL("pause");
+    for(const auto& timer : process_timers_)
+    {
+      ROS_DEBUG("Stopping timer");
+      timer->stop();
+    }
     onPause();
   }
 
@@ -200,7 +252,7 @@ namespace robot_process {
   {
     uint8_t from_state = static_cast<uint8_t>(current_state_);
     uint8_t to_state = static_cast<uint8_t>(new_state);
-    TransitionCallback callback = STATE_TRANSITIONS[from_state][to_state];
+    MemberLambdaCallback callback = STATE_TRANSITIONS[from_state][to_state];
     if (callback == nullptr)
     {
       ROS_FATAL_STREAM_ONCE(
@@ -212,7 +264,10 @@ namespace robot_process {
       "Changing state from [" << current_state_ << "] to ["
       << new_state << "]");
     current_state_ = new_state;
-    (this->*callback)();
+
+    boost::bind(callback, this)();
+    //cb();
+    //(this->*callback)();
     notifyState();
   }
 

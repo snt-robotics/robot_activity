@@ -21,6 +21,10 @@
 
 namespace robot_process {
 
+class RobotProcess;
+
+typedef void (RobotProcess::*MemberLambdaCallback)();
+
 enum class State : std::uint8_t {
   INVALID      = robot_process_msgs::State::INVALID,
   LAUNCHING    = robot_process_msgs::State::LAUNCHING,
@@ -38,17 +42,29 @@ class RobotProcess
 {
 public:
 
-  RobotProcess(int argc, char* argv[]);
-  RobotProcess(int argc, char* argv[], std::string name);
+  RobotProcess() = delete;
+
+  RobotProcess(int argc, char* argv[],
+    const std::string& name_space = {},
+    const std::string& name = {});
   ~RobotProcess();
 
-  RobotProcess& init();
-  void run(bool autostart = false);
+  RobotProcess& init(bool autostart = false);
+  void run(uint8_t threads = 0);
+  void runAsync(uint8_t threads = 0);
 
 protected:
 
   ros::NodeHandlePtr node_handle_;
   ros::NodeHandlePtr node_handle_private_;
+
+  void registerIsolatedTimer(const LambdaCallback& callback,
+                             const float& frequency,
+                             bool stoppable = true);
+
+  void registerIsolatedTimer(const MemberLambdaCallback& callback,
+                             const float& frequency,
+                             bool stoppable = true);
 
   virtual void onCreate() {};
   virtual void onTerminate() {};
@@ -69,29 +85,27 @@ private:
   bool autostart_ = false;
   bool autostart_after_reconfigure_ = false;
 
+  std::string node_namespace_;
   std::string node_name_;
 
   ros::CallbackQueue state_request_callback_queue_;
   std::shared_ptr<ros::AsyncSpinner> state_request_spinner_;
 
   ros::ServiceServer terminate_server_;
-
   ros::ServiceServer reconfigure_server_;
   ros::ServiceServer restart_server_;
-
   ros::ServiceServer start_server_;
   ros::ServiceServer stop_server_;
-
   ros::ServiceServer pause_server_;
 
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
-
-
   State current_state_ = State::LAUNCHING;
 
   std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
+
+  std::vector<std::shared_ptr<robot_process::IsolatedAsyncTimer>> process_timers_;
 
   void create();
   void terminate();
@@ -116,8 +130,7 @@ private:
   typedef boost::function<bool(
     std_srvs::Empty::Request& req,
     std_srvs::Empty::Response& res)> EmptyServiceCallback;
-  typedef void (RobotProcess::*TransitionCallback)();
-  typedef TransitionCallback StateTransitions
+  typedef MemberLambdaCallback StateTransitions
     [static_cast<uint8_t>(State::Count)]
     [static_cast<uint8_t>(State::Count)];
 

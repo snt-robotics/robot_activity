@@ -26,23 +26,27 @@ public:
   IsolatedAsyncTimer(const ros::NodeHandle& node_handle,
                      const LambdaCallback& callback,
                      const float& frequency,
-                     bool oneshot = false,
-                     bool autostart = true)
+                     bool stoppable = true,
+                     bool autostart = true,
+                     bool oneshot = false)
     : IsolatedAsyncTimer(node_handle,
                          convert_to_timer_callback(callback),
                          frequency,
-                         oneshot,
-                         autostart) { }
+                         stoppable,
+                         autostart,
+                         oneshot) { }
 
   IsolatedAsyncTimer(const ros::NodeHandle& node_handle,
                      const ros::TimerCallback& callback,
                      const float& frequency,
-                     bool oneshot = false,
-                     bool autostart = true)
+                     bool stoppable = true,
+                     bool autostart = true,
+                     bool oneshot = false)
     : node_handle_(node_handle),
       timer_ops_(),
       callback_(callback),
-      callback_queue_()
+      callback_queue_(),
+      stoppable_(stoppable)
   {
     timer_ops_.period = ros::Duration(1.0 / frequency);
     timer_ops_.callback = callback_;
@@ -57,10 +61,14 @@ public:
     spinner_->start();
   }
 
-  ~IsolatedAsyncTimer() { }
+  ~IsolatedAsyncTimer() { ROS_DEBUG("IsolatedAsyncTimer destructor"); }
 
   void start() { timer_->start(); }
-  void stop() { timer_->stop(); }
+  void stop()
+  {
+    if (stoppable_)
+      timer_->stop();
+  }
   bool isValid() { return timer_->isValid(); }
   void setPeriod(const ros::Duration& period, bool reset = true)
   {
@@ -77,6 +85,8 @@ private:
 
   std::shared_ptr<ros::Timer> timer_;
   std::shared_ptr<ros::AsyncSpinner> spinner_;
+
+  bool stoppable_ = true;
 
 };
 

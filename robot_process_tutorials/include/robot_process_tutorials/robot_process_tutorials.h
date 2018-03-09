@@ -4,25 +4,32 @@
 #include <ros/ros.h>
 #include <robot_process/robot_process.h>
 
+#include "robot_process/isolated_async_timer.h"
+
 namespace robot_process_tutorials {
 
 class RobotProcessTutorials : public robot_process::RobotProcess
 {
-public:
+
+private:
 
   using RobotProcess::RobotProcess;
 
-  void onCreate();
-  void onTerminate();
+  void onCreate() override;
+  void onTerminate() override;
 
-  void onConfigure();
-  void onUnconfigure();
+  void onConfigure() override;
+  void onUnconfigure() override;
 
-  void onStart();
-  void onStop();
+  void onStart() override;
+  void onStop() override;
 
-  void onPause();
-  void onResume();
+  void onPause() override;
+  void onResume() override;
+
+  void timerCallback();
+
+  int counter = 0;
 
 };
 
