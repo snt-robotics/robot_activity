@@ -158,12 +158,22 @@ namespace robot_process {
   void RobotProcess::start()
   {
     PRINT_FUNC_CALL("start");
+    for(const auto& timer : process_timers_)
+    {
+      ROS_DEBUG("Starting timer");
+      timer->start();
+    }
     onStart();
   }
 
   void RobotProcess::stop()
   {
     PRINT_FUNC_CALL("stop");
+    for(const auto& timer : process_timers_)
+    {
+      ROS_DEBUG("Stopping timer");
+      timer->stop();
+    }
     onStop();
   }
 
@@ -173,7 +183,7 @@ namespace robot_process {
     for(const auto& timer : process_timers_)
     {
       ROS_DEBUG("Resuming timer");
-      timer->start();
+      timer->resume();
     }
     onResume();
   }
@@ -183,8 +193,8 @@ namespace robot_process {
     PRINT_FUNC_CALL("pause");
     for(const auto& timer : process_timers_)
     {
-      ROS_DEBUG("Stopping timer");
-      timer->stop();
+      ROS_DEBUG("Pausing timer");
+      timer->pause();
     }
     onPause();
   }

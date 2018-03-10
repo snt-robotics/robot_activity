@@ -25,6 +25,8 @@ private:
   void onPause() override;
   void onResume() override;
 
+private:
+
   void timerCallback();
 
   int counter = 0;

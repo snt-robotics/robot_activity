@@ -1,6 +1,6 @@
 <launch>
   <arg name="wait_for_supervisor" default="false" />
-  <arg name="autostart" default="false" />
+  <arg name="autostart" default="true" />
   <arg name="autostart_after_reconfigure" default="false"/>
   <arg name="heartbeat_rate" default="0.2"/>
 
