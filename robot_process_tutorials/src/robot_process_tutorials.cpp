@@ -20,11 +20,9 @@ namespace robot_process_tutorials {
     //registerIsolatedTimer(std::bind(&RobotProcessTutorials::timerCallback, this), 4.0, false);
 
     int context = 0;
-
     robot_process::IsolatedAsyncTimer::LambdaCallback cb = [=]() mutable
     { 
-      ROS_INFO("Context %d", 
-      context++); 
+      ROS_INFO_STREAM(node_namespace_ << " " << context++); 
     };
 
     registerIsolatedTimer(cb, 1.0, true);

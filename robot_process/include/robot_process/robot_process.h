@@ -56,6 +56,9 @@ public:
 
 protected:
 
+  std::string node_namespace_;
+  std::string node_name_;
+
   ros::NodeHandlePtr node_handle_;
   ros::NodeHandlePtr node_handle_private_;
 
@@ -85,9 +88,6 @@ private:
 
   bool autostart_ = false;
   bool autostart_after_reconfigure_ = false;
-
-  std::string node_namespace_;
-  std::string node_name_;
 
   ros::CallbackQueue state_request_callback_queue_;
   std::shared_ptr<ros::AsyncSpinner> state_request_spinner_;
