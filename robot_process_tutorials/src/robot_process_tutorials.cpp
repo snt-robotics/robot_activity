@@ -4,64 +4,80 @@ namespace robot_process_tutorials {
 
   void RobotProcessTutorials::timerCallback()
   {
-    ROS_INFO("Non-stoppable %d", counter++);
+    ROS_INFO_STREAM(getNamespace() << " " << counter);
+    counter++;
   }
 
 
-  void RobotProcessTutorials::onCreate()
+  void RobotProcessTutorials::onManagedCreate()
   {
-    ROS_INFO("onCreate");
-
-    // robot_process::IsolatedAsyncTimer::LambdaCallback cb =
-    //   [this]() { ROS_INFO("Stoppable %d", counter++); };
-    // registerIsolatedTimer(cb, 4.0, true);
-
-    //registerIsolatedTimer(&RobotProcessTutorials::timerCallback, 4.0, false);
-    //registerIsolatedTimer(std::bind(&RobotProcessTutorials::timerCallback, this), 4.0, false);
-
+    ROS_INFO("onManagedCreate");
+    /*
+      C++11 lambda as Timer's callback
+      context is a local variable, which is **copied** ([=]) into lambda its
+      state can be changed due to **mutable** keyword
+      The lambda callback has access to the class object since ([=]) captures
+      **this** by reference, therefore we can access **node_namespace_**,
+      which resides in RobotProcess class
+    */
     int context = 0;
     robot_process::IsolatedAsyncTimer::LambdaCallback cb = [=]() mutable
-    { 
-      ROS_INFO_STREAM(node_namespace_ << " " << context++); 
+    {
+      ROS_INFO_STREAM(getNamespace() << " " << context);
+      context++;
     };
-
+    /*
+      registers the previous callback in timer at 1Hz, which is stoppable
+      meaning that Timer will only be fired in RUNNING state
+    */
     registerIsolatedTimer(cb, 1.0, true);
 
+
+    /*
+      registers timer with a member function of this class as a callback,
+      which is std::bind'ed or boost:bind'ed
+      This timer is unstoppable
+    */
+    registerIsolatedTimer(
+      std::bind(&RobotProcessTutorials::timerCallback, this),
+      1.0,
+      false);
+
   }
 
-  void RobotProcessTutorials::onTerminate()
+  void RobotProcessTutorials::onManagedTerminate()
   {
-    ROS_INFO("onTerminate");
+    ROS_INFO("onManagedTerminate");
   };
 
-  void RobotProcessTutorials::onConfigure()
+  void RobotProcessTutorials::onManagedConfigure()
   {
-    ROS_INFO("onConfigure");
+    ROS_INFO("onManagedConfigure");
   }
 
-  void RobotProcessTutorials::onUnconfigure()
+  void RobotProcessTutorials::onManagedUnconfigure()
   {
-    ROS_INFO("onUnconfigure");
+    ROS_INFO("onManagedUnconfigure");
   }
 
-  void RobotProcessTutorials::onStart()
+  void RobotProcessTutorials::onManagedStart()
   {
-    ROS_INFO("onStart");
+    ROS_INFO("onManagedStart");
   }
 
-  void RobotProcessTutorials::onStop()
+  void RobotProcessTutorials::onManagedStop()
   {
-    ROS_INFO("onStop");
+    ROS_INFO("onManagedStop");
   }
 
-  void RobotProcessTutorials::onPause()
+  void RobotProcessTutorials::onManagedPause()
   {
-    ROS_INFO("onPause");
+    ROS_INFO("onManagedPause");
   }
 
-  void RobotProcessTutorials::onResume()
+  void RobotProcessTutorials::onManagedResume()
   {
-    ROS_INFO("onResume");
+    ROS_INFO("onManagedResume");
   }
 
 } // namespace robot_process_tutorials

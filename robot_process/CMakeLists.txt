@@ -18,6 +18,6 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(robot_process src/robot_process.cpp)
+add_library(robot_process src/robot_process.cpp src/managed_robot_process.cpp)
 add_dependencies(robot_process ${catkin_EXPORTED_TARGETS})
 target_link_libraries(robot_process ${catkin_LIBRARIES})

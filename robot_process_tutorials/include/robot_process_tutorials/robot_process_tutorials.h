@@ -3,34 +3,33 @@
 
 #include <ros/ros.h>
 #include <robot_process/robot_process.h>
+#include <robot_process/managed_robot_process.h>
 
 namespace robot_process_tutorials {
 
-class RobotProcessTutorials : public robot_process::RobotProcess
+class RobotProcessTutorials : public robot_process::ManagedRobotProcess
 {
-
 private:
 
-  using RobotProcess::RobotProcess;
+  using ManagedRobotProcess::ManagedRobotProcess;
 
-  void onCreate() override;
-  void onTerminate() override;
+  void onManagedCreate() override;
+  void onManagedTerminate() override;
 
-  void onConfigure() override;
-  void onUnconfigure() override;
+  void onManagedConfigure() override;
+  void onManagedUnconfigure() override;
 
-  void onStart() override;
-  void onStop() override;
+  void onManagedStart() override;
+  void onManagedStop() override;
 
-  void onPause() override;
-  void onResume() override;
+  void onManagedPause() override;
+  void onManagedResume() override;
 
 private:
 
   void timerCallback();
 
   int counter = 0;
-
 };
 
 } // namespace robot_process_tutorials

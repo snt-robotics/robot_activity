@@ -1,4 +1,4 @@
-#include "robot_process/robot_process.h"
+#include <robot_process/robot_process.h>
 
 #define PRINT_FUNC_CALL(state) \
   ROS_DEBUG_STREAM(#state << "() method called")
@@ -12,7 +12,7 @@ namespace robot_process {
       node_name_(name),
       state_request_callback_queue_()
   {
-    if (ros::isInitialized() == true)
+    if (ros::isInitialized())
     {
       node_name_ = ros::this_node::getName();
       return;
@@ -29,7 +29,7 @@ namespace robot_process {
 
   RobotProcess::~RobotProcess()
   {
-    ROS_DEBUG("RobotProcess destructor");
+    ROS_DEBUG_STREAM("RobotProcess destructor [" << node_namespace_ << "]");
   }
 
   RobotProcess& RobotProcess::init(bool autostart)
@@ -42,7 +42,8 @@ namespace robot_process {
     ROS_INFO_STREAM("wait_for_supervisor = "
       << std::boolalpha << wait_for_supervisor_);
 
-    process_state_pub_ = node_handle_private_->advertise<robot_process_msgs::State>("heartbeat", 0, true);
+    process_state_pub_ = node_handle_private_->advertise<robot_process_msgs::State>("/heartbeat", 0, true);
+    process_error_pub_ = node_handle_private_->advertise<robot_process_msgs::Error>("/error", 0, true);
 
     if (wait_for_supervisor_)
     {
@@ -92,16 +93,32 @@ namespace robot_process {
     return *this;
   }
 
-  void RobotProcess::run(uint8_t threads)
+  void RobotProcess::run(uint8_t threads) const
   {
     ros::MultiThreadedSpinner spinner(threads);
     spinner.spin();
   }
 
-  void RobotProcess::runAsync(uint8_t threads)
+  void RobotProcess::runAsync(uint8_t threads) const
   {
     ros::AsyncSpinner spinner(threads);
     spinner.start();
+  }
+
+  void RobotProcess::notifyError(uint8_t error_type,
+                   const std::string& function,
+                   const std::string& description)
+  {
+    ROS_DEBUG_STREAM("Publishing error msg with code: "
+      << error_type << " function: " << function
+      << " description: " << description);
+    robot_process_msgs::Error error_msg;
+    error_msg.header.stamp = ros::Time::now();
+    error_msg.node_name = getNamespace();
+    error_msg.error_type = error_type;
+    error_msg.function = function;
+    error_msg.description = description;
+    process_error_pub_.publish(error_msg);
   }
 
   void RobotProcess::registerIsolatedTimer(
@@ -120,16 +137,11 @@ namespace robot_process {
       ));
   }
 
-  void RobotProcess::registerIsolatedTimer(
-    const MemberLambdaCallback& callback,
-    const float& frequency,
-    bool stoppable)
+  const std::string& RobotProcess::getNamespace() const
   {
-    registerIsolatedTimer(
-      boost::bind(callback, this),
-      frequency,
-      stoppable);
+    return node_handle_private_->getNamespace();
   }
+
 
   void RobotProcess::create()
   {
@@ -141,6 +153,8 @@ namespace robot_process {
   {
     PRINT_FUNC_CALL("terminate");
     onTerminate();
+    ros::Rate(2).sleep();
+    ros::shutdown();
   }
 
   void RobotProcess::configure()
@@ -231,7 +245,7 @@ namespace robot_process {
     ROS_DEBUG("Heartbeat sent!");
     robot_process_msgs::State state_msg;
     state_msg.header.stamp = ros::Time::now();
-    state_msg.node_name = node_name_;
+    state_msg.node_name = getNamespace();
     state_msg.state = static_cast<uint8_t>(current_state_);
     process_state_pub_.publish(state_msg);
   }

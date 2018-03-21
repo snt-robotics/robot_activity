@@ -7,9 +7,6 @@
 #ifndef ROBOT_PROCESS_H
 #define ROBOT_PROCESS_H
 
-#include <string>
-#include <thread>
-
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 
@@ -20,11 +17,6 @@
 #include <robot_process/isolated_async_timer.h>
 
 namespace robot_process {
-
-class RobotProcess;
-class IsolatedAsyncTimer;
-
-typedef void (RobotProcess::*MemberLambdaCallback)();
 
 enum class State : std::uint8_t {
   INVALID      = robot_process_msgs::State::INVALID,
@@ -48,41 +40,31 @@ public:
   RobotProcess(int argc, char* argv[],
     const std::string& name_space = {},
     const std::string& name = {});
-  ~RobotProcess();
+  virtual ~RobotProcess();
 
   RobotProcess& init(bool autostart = false);
-  void run(uint8_t threads = 0);
-  void runAsync(uint8_t threads = 0);
+  void run(uint8_t threads = 0) const;
+  void runAsync(uint8_t threads = 0) const;
 
 protected:
 
-  std::string node_namespace_;
-  std::string node_name_;
-
   ros::NodeHandlePtr node_handle_;
   ros::NodeHandlePtr node_handle_private_;
+
+  void notifyError(uint8_t error_type,
+                   const std::string& function,
+                   const std::string& description);
 
   void registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
                              const float& frequency,
                              bool stoppable = true);
 
-  void registerIsolatedTimer(const MemberLambdaCallback& callback,
-                             const float& frequency,
-                             bool stoppable = true);
-
-  virtual void onCreate() {};
-  virtual void onTerminate() {};
-
-  virtual void onConfigure() {};
-  virtual void onUnconfigure() {};
-
-  virtual void onStart() {};
-  virtual void onStop() {};
-
-  virtual void onPause() {};
-  virtual void onResume() {};
+  const std::string& getNamespace() const;
 
 private:
+
+  std::string node_namespace_;
+  std::string node_name_;
 
   bool wait_for_supervisor_ = true;
 
@@ -108,6 +90,18 @@ private:
 
   std::vector<std::shared_ptr<robot_process::IsolatedAsyncTimer>> process_timers_;
 
+  virtual void onCreate() = 0;
+  virtual void onTerminate() = 0;
+
+  virtual void onConfigure() = 0;
+  virtual void onUnconfigure() = 0;
+
+  virtual void onStart() = 0;
+  virtual void onStop() = 0;
+
+  virtual void onPause() = 0;
+  virtual void onResume() = 0;
+
   void create();
   void terminate();
 
@@ -127,6 +121,8 @@ private:
   ros::ServiceServer registerStateChangeRequest(
     const std::string& service_name,
     const std::vector<State>& states);
+
+  typedef void (RobotProcess::*MemberLambdaCallback)();
 
   typedef boost::function<bool(
     std_srvs::Empty::Request& req,

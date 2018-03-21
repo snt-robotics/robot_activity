@@ -50,7 +50,10 @@ public:
   {
     callback_ = wrap_callback(callback);
 
-    timer_ops_.period = ros::Duration(1.0 / frequency);
+    frequency_ = frequency;
+    period_ = ros::Duration(1.0 / frequency);
+
+    timer_ops_.period = period_;
     timer_ops_.callback = callback_;
     timer_ops_.callback_queue = &callback_queue_;
     timer_ops_.oneshot = oneshot;
@@ -75,9 +78,11 @@ public:
   void resume() { paused_ = false; }
 
   bool isValid() { return timer_->isValid(); }
-  void setPeriod(const ros::Duration& period, bool reset = true)
+  void setRate(const float& frequency, bool reset = true)
   {
-    timer_->setPeriod(period, reset);
+    frequency_ = frequency;
+    period_ = ros::Duration(1.0 / frequency);
+    timer_->setPeriod(period_, reset);
   }
 
   static ros::TimerCallback to_timer_callback(
@@ -88,10 +93,21 @@ public:
 
   ros::TimerCallback wrap_callback(const ros::TimerCallback& callback)
   {
-    return [=](const ros::TimerEvent& event)
+    return [=](const ros::TimerEvent& ev)
     {
       if (stoppable_ == false || paused_ == false)
-        callback(event);
+      {
+        auto last_loop_duration = ev.profile.last_duration.toSec();
+        if ( ev.last_real.toSec() != 0 && last_loop_duration > period_.toSec())
+        {
+          auto lag = last_loop_duration - period_.toSec();
+          ROS_WARN_STREAM(
+            "Missed it's desired rate of " << frequency_ <<
+            " [Hz], the loop actually took " << last_loop_duration
+            << " [s], which is " << lag << " [s] longer");
+        }
+        callback(ev);
+      }
     };
   }
 
@@ -99,6 +115,8 @@ private:
 
   ros::NodeHandle node_handle_;
 
+  float frequency_;
+  ros::Duration period_;
   ros::TimerOptions timer_ops_;
   ros::TimerCallback callback_;
   ros::CallbackQueue callback_queue_;
