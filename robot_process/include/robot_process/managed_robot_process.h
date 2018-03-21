@@ -51,6 +51,12 @@ private:
   virtual void onManagedPause() = 0;
   virtual void onManagedResume() = 0;
 
+  std::vector<ros::Subscriber> managed_subscribers_;
+
+  /* wrapped subscribe calls */
+
+
+
 };
 
 } // namespace robot_process
