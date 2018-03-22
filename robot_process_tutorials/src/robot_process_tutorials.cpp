@@ -7,44 +7,47 @@ namespace robot_process_tutorials {
     ROS_INFO_STREAM(getNamespace() << " " << counter);
     counter++;
   }
-
+  
+  void RobotProcessTutorials::msgCallback(boost::shared_ptr<robot_process_msgs::State> msg)
+  {
+    ROS_INFO_STREAM("MSG CALLBACK " << unsigned(msg->state));
+  }
 
   void RobotProcessTutorials::onManagedCreate()
   {
     ROS_INFO("onManagedCreate");
-    // /*
-    //   C++11 lambda as Timer's callback
-    //   context is a local variable, which is **copied** ([=]) into lambda its
-    //   state can be changed due to **mutable** keyword
-    //   The lambda callback has access to the class object since ([=]) captures
-    //   **this** by reference, therefore we can access **node_namespace_**,
-    //   which resides in RobotProcess class
-    // */
-    // int context = 0;
-    // robot_process::IsolatedAsyncTimer::LambdaCallback cb = [=]() mutable
-    // {
-    //   ROS_INFO_STREAM(getNamespace() << " " << context);
-    //   context++;
-    // };
-    // /*
-    //   registers the previous callback in timer at 1Hz, which is stoppable
-    //   meaning that Timer will only be fired in RUNNING state
-    // */
-    // registerIsolatedTimer(cb, 1.0, true);
-    //
-    //
-    // /*
-    //   registers timer with a member function of this class as a callback,
-    //   which is std::bind'ed or boost:bind'ed
-    //   This timer is unstoppable
-    // */
-    // registerIsolatedTimer(
-    //   std::bind(&RobotProcessTutorials::timerCallback, this),
-    //   1.0,
-    //   false);
+    /*
+      C++11 lambda as Timer's callback
+      context is a local variable, which is **copied** ([=]) into lambda its
+      state can be changed due to **mutable** keyword
+      The lambda callback has access to the class object since ([=]) captures
+      **this** by reference, therefore we can access **node_namespace_**,
+      which resides in RobotProcess class
+    */
+    int context = 0;
+    robot_process::IsolatedAsyncTimer::LambdaCallback cb = [=]() mutable
+    {
+      ROS_INFO_STREAM(getNamespace() << " " << context);
+      context++;
+    };
+    /*
+      registers the previous callback in timer at 1Hz, which is stoppable
+      meaning that Timer will only be fired in RUNNING state
+    */
+    registerIsolatedTimer(cb, 1.0, true);
+    
+    
+    /*
+      registers timer with a member function of this class as a callback,
+      which is std::bind'ed or boost:bind'ed
+      This timer is unstoppable
+    */
+    registerIsolatedTimer(
+      std::bind(&RobotProcessTutorials::timerCallback, this),
+      1.0,
+      false);
 
-    node_handle_private_->subscribe
-
+    subscription_manager.listen("/heartbeat", 100, &RobotProcessTutorials::msgCallback, this);
   }
 
   void RobotProcessTutorials::onManagedTerminate()

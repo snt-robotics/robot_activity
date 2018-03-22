@@ -17,6 +17,8 @@
 
 #include <robot_process/robot_process.h>
 
+#include <robot_process/subscription_manager.h>
+
 namespace robot_process {
 
 class ManagedRobotProcess : public RobotProcess
@@ -24,6 +26,8 @@ class ManagedRobotProcess : public RobotProcess
 public:
 
   using RobotProcess::RobotProcess;
+
+  SubscriptionManager subscription_manager;
 
 private:
 
@@ -50,11 +54,6 @@ private:
 
   virtual void onManagedPause() = 0;
   virtual void onManagedResume() = 0;
-
-  std::vector<ros::Subscriber> managed_subscribers_;
-
-  /* wrapped subscribe calls */
-
 
 
 };

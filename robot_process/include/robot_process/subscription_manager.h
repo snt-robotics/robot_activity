@@ -3,52 +3,32 @@
 
 #include <atomic>
 
+#include <ros/ros.h>
+
 namespace robot_process {
 
-//class SubscriptionManager;
 class ManagedSubscription;
+typedef std::shared_ptr<ManagedSubscription> ManagedSubscriptionPtr;
 
-// class SubscriptionManager
-// {
-//
-// public:
-//   SubscriptionManager();
-//   ~SubscriptionManager();
-//
-//   template <typename ...Args>
-//   ManagedSubscription register(Args&& ...args)
-//   {
-//
-//   }
-//
-//   void subscribeAll()
-//   {
-//     for (const auto& sub: subscriptions_)
-//       sub.subscribe();
-//   }
-//
-//   void unsubscribeAll()
-//   {
-//     for (const auto& sub: subscriptions_)
-//       sub.unsubscribe();
-//   }
-//
-//   void pauseAll();
-//   {
-//     for (const auto& sub: subscriptions_)
-//       sub.pause();
-//   }
-//
-//   void resumeAll();
-//   {
-//     for (const auto& sub: subscriptions_)
-//       sub.resume();
-//   }
-//
-// private:
-//
-//   std::vector<shared_ptr<ManagedSubscription>> subscriptions_;
-// }
+class SubscriptionManager
+{
+public:
+  SubscriptionManager() : subscriptions_() {}
+  ~SubscriptionManager() {}
+
+  template<typename... Args>
+  ManagedSubscription listen(Args&& ...args);
+
+  void subscribeAll(const ros::NodeHandlePtr& node_handle);
+  void unsubscribeAll();
+
+  void pauseAll();
+  void resumeAll();
+
+private:
+  std::vector<ManagedSubscription> subscriptions_;
+};
+
 
 class ManagedSubscription
 {
@@ -58,41 +38,47 @@ public:
   ManagedSubscription(Args&& ...args)
   : subscribed_(false), paused_(true), subscriber_()
   {
-    subscribe_function_ = make_subscriber_creator(std::forward<Args>(args)...);
+    make_subscriber_function_ = constructMakeSubscriberFunc(std::forward<Args>(args)...);
   }
 
-  void subscribe()
+  void subscribe(const ros::NodeHandlePtr& node_handle)
   {
+    ROS_DEBUG("ManagedSubscription::subscribe executed!");
     if (subscribed_)
     {
       ROS_WARN("Already subscribed!");
       return;
     }
 
-    ROS_INFO("Subscribing...")
-    subscriber_ = subscribe_function_();
+    ROS_DEBUG("Subscribing...");
+    subscriber_ = make_subscriber_function_(node_handle);
+    subscribed_ = true;
   }
 
   void unsubscribe()
   {
+    ROS_DEBUG("ManagedSubscription::unsubscribe executed!");
     if (subscribed_)
     {
-      ROS_INFO("Unsubscribing...");
+      ROS_DEBUG("Unsubscribing...");
       subscriber_.shutdown();
+      subscribed_ = false;
     }
     else
     {
-      ROS_WARN("Not subscribed!");
+      ROS_WARN("Cannot unsubscribe ");
     }
   }
 
   void pause()
   {
+    ROS_DEBUG("ManagedSubscription::pause executed!");
     paused_ = true;
   }
 
   void resume()
   {
+    ROS_DEBUG("ManagedSubscription::resume executed!");
     paused_ = false;
   }
 
@@ -100,24 +86,43 @@ private:
 
   std::atomic<bool> subscribed_;
   std::atomic<bool> paused_;
+
   ros::Subscriber subscriber_;
 
-  std::function<void(void)> subscribe_function_;
+  template <class Message>
+  using Callback = boost::function<void(Message)>;
+
+  template<class Message>
+  Callback<Message> wrapCallback(const Callback<Message>& callback) const
+  {
+    return [this, &callback](Message message) {
+      ROS_DEBUG("WrappedCallback executed!");
+      if (!paused_)
+        callback(message);
+      else
+        ROS_DEBUG("Callback is PAUSED");
+    };
+  }
+
+  typedef std::function<ros::Subscriber(const ros::NodeHandlePtr&)> MakeSubscriberFunc;
+  MakeSubscriberFunc make_subscriber_function_;
 
   template<class M, class T>
-  std::function<void(void)> make_subscriber_creator(
+  MakeSubscriberFunc constructMakeSubscriberFunc(
     const std::string& topic, uint32_t queue_size, void(T::*fp)(M), T* obj,
-    const ros::TransportHints& transport_hints)
+    const ros::TransportHints& transport_hints = ros::TransportHints())
   {
-    auto callback = boost::bind(fp, obj, _1);
+    ROS_DEBUG("constructMakeSubscriberFunc executed!");
+    Callback<M> callback = boost::bind(fp, obj, _1);
 
-    boost::function<void(M)> wrapped_callback = [=]()
-
-    ros::SubscribeOptions ops;
-    ops.transport_hints = transport_hints;
-
-    return [](ros::NodeHandle nh) {
-      nh->subscribe(ops)
+    return [=](const ros::NodeHandlePtr& nh) -> ros::Subscriber {
+      ROS_DEBUG("Subscription is being created!");
+      return nh->subscribe<M>(
+        topic, 
+        queue_size, 
+        static_cast<Callback<M>>(wrapCallback(callback)), 
+        ros::VoidConstPtr(), 
+        transport_hints);
     };
   }
 
@@ -222,7 +227,7 @@ private:
   //   return ros::Subscriber();
   // }
 
-}
+};
 
 }
 

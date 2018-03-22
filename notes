@@ -1,0 +1,1 @@
+callback on timer waits until previous is executed if there is only single thread
