@@ -10,6 +10,10 @@ ROS packages, which implements **managed** nodes. Main features are:
 
 UML diagram below shows the class hierarchy as well as the public interface.
 
-<img align="center" src="docs/figures/robot_process.pdf" alt="...">
+<object data="docs/figures/robot_process.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="docs/figures/robot_process.pdf"></embed>
+</object>
 
+<!-- <img align="center" src="docs/figures/robot_process.pdf" alt="...">
+ -->
 
