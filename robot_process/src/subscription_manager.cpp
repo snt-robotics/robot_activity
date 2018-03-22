@@ -3,7 +3,7 @@
 namespace robot_process {
 
 template<typename... Args>
-ManagedSubscription SubscriptionManager::listen(Args&& ...args)
+ManagedSubscription SubscriptionManager::subscribe(Args&& ...args)
 {
   // auto managed_subscription = std::make_shared<ManagedSubscription>(
   //   std::forward<Args>(args)...);

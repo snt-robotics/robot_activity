@@ -17,7 +17,7 @@ public:
   ~SubscriptionManager() {}
 
   template<typename... Args>
-  ManagedSubscription listen(Args&& ...args);
+  ManagedSubscription subscribe(Args&& ...args);
 
   void subscribeAll(const ros::NodeHandlePtr& node_handle);
   void unsubscribeAll();

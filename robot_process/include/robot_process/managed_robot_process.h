@@ -27,9 +27,9 @@ public:
 
   using RobotProcess::RobotProcess;
 
-  SubscriptionManager subscription_manager;
-
 private:
+
+  SubscriptionManager subscription_manager;
 
   void onCreate() override final;
   void onTerminate() override final;
