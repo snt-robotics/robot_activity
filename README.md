@@ -11,8 +11,5 @@ ROS packages, which implements **managed** nodes. Main features are:
 UML diagram below shows the class hierarchy as well as the public interface.
 
 ![Alt text](./docs/figures/robot_process.svg)
-<img src="./docs/figures/robot_process.svg">
 
-<!-- <img align="center" src="docs/figures/robot_process.pdf" alt="...">
- -->
 

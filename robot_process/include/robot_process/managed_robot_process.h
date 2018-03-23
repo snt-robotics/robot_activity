@@ -17,7 +17,7 @@
 
 #include <robot_process/robot_process.h>
 
-#include <robot_process/subscription_manager.h>
+#include <robot_process/manager/subscription_manager.h>
 
 namespace robot_process {
 
@@ -27,9 +27,9 @@ public:
 
   using RobotProcess::RobotProcess;
 
-private:
-
   SubscriptionManager subscription_manager;
+
+private:
 
   void onCreate() override final;
   void onTerminate() override final;
