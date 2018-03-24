@@ -2,14 +2,14 @@
 
 namespace robot_process {
 
-template<class Resource>
-Managed<Resource>::~Managed()
+template<class Specialization, class Resource>
+Managed<Specialization,Resource>::~Managed()
 {
   ROS_DEBUG("Managed::dtor");
 }
 
-template<class Resource>
-void Managed<Resource>::acquire(const ros::NodeHandlePtr& node_handle)
+template<class Specialization, class Resource>
+void Managed<Specialization,Resource>::acquire(const ros::NodeHandlePtr& node_handle)
 {
   ROS_DEBUG("Managed::acquire executed!");
   if (acquired_)
@@ -23,8 +23,8 @@ void Managed<Resource>::acquire(const ros::NodeHandlePtr& node_handle)
   acquired_ = true;
 }
 
-template<class Resource>
-void Managed<Resource>::release()
+template<class Specialization, class Resource>
+void Managed<Specialization,Resource>::release()
 {
   ROS_DEBUG("Managed::release executed!");
   if (acquired_)
@@ -39,22 +39,22 @@ void Managed<Resource>::release()
   }
 }
 
-template<class Resource>
-void Managed<Resource>::pause()
+template<class Specialization, class Resource>
+void Managed<Specialization,Resource>::pause()
 {
   ROS_DEBUG("Managed::pause executed!");
   paused_ = true;
 }
 
-template<class Resource>
-void Managed<Resource>::resume()
+template<class Specialization, class Resource>
+void Managed<Specialization,Resource>::resume()
 {
   ROS_DEBUG("Managed::resume executed!");
   paused_ = false;
 }
 
-template class Managed<ros::Subscriber>;
-template class Managed<ros::ServiceServer>;
+template class Managed<ManagedSubscriber, ros::Subscriber>;
+template class Managed<ManagedServiceServer, ros::ServiceServer>;
 
 /*
 template<class M, class T>

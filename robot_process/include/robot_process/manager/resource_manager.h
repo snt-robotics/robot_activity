@@ -16,10 +16,10 @@ public:
   ~ResourceManager() {}
 
   template<typename... Args>
-  typename Managed<Resource>::SharedPtr acquire(Args&& ...args)
+  typename Resource::SharedPtr acquire(Args&& ...args)
   {
     auto managed_subscription =
-      std::make_shared<Managed<Resource>>(std::forward<Args>(args)...);
+      std::make_shared<Resource>(std::forward<Args>(args)...);
     resources_.push_back(managed_subscription);
     return managed_subscription;
   }
@@ -31,40 +31,40 @@ public:
   void resumeAll();
 
 private:
-  std::vector<typename Managed<Resource>::SharedPtr> resources_;
+  std::vector<typename Resource::SharedPtr> resources_;
 };
 
 template <class T>
 class RMWrapper : public ResourceManager<T> {};
 
 template<>
-class RMWrapper<ros::Subscriber> : public ResourceManager<ros::Subscriber>
+class RMWrapper<ManagedSubscriber> : public ResourceManager<ManagedSubscriber>
 {
 public:
-  using ResourceManager<ros::Subscriber>::acquire;
+  using ResourceManager<ManagedSubscriber>::acquire;
 
   template<typename... Args>
-  Managed<ros::Subscriber>::SharedPtr subscribe(Args&& ...args)
+  ManagedSubscriber::SharedPtr subscribe(Args&& ...args)
   {
     return acquire(std::forward<Args>(args)...);
   }
 };
 
 template<>
-class RMWrapper<ros::ServiceServer> : public ResourceManager<ros::ServiceServer>
+class RMWrapper<ManagedServiceServer> : public ResourceManager<ManagedServiceServer>
 {
 public:
-  using ResourceManager<ros::ServiceServer>::acquire;
+  using ResourceManager<ManagedServiceServer>::acquire;
 
   template<typename... Args>
-  Managed<ros::ServiceServer>::SharedPtr advertiseService(Args&& ...args)
+  ManagedServiceServer::SharedPtr advertiseService(Args&& ...args)
   {
     return acquire(std::forward<Args>(args)...);
   }
 };
 
-typedef RMWrapper<ros::Subscriber> SubscriberManager;
-typedef RMWrapper<ros::ServiceServer> ServiceServerManager;
+typedef RMWrapper<ManagedSubscriber> SubscriberManager;
+typedef RMWrapper<ManagedServiceServer> ServiceServerManager;
 
 }
 

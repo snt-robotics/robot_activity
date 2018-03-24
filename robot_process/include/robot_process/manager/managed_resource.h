@@ -8,7 +8,7 @@
 
 namespace robot_process {
 
-template <class Resource>
+template <class Specialization, class Resource>
 class Managed
 {
 public:
@@ -30,9 +30,9 @@ public:
   void pause();
   void resume();
 
-  typedef std::shared_ptr<Managed<Resource>> SharedPtr;
+  typedef std::shared_ptr<Managed<Specialization, Resource>> SharedPtr;
 
-private:
+protected:
 
   template <class Message>
   using Callback = boost::function<void(Message)>;
@@ -51,6 +51,15 @@ private:
 
   typedef std::function<Resource(const ros::NodeHandlePtr&)> LazyAcquire;
 
+  template<typename... Args>
+  LazyAcquire makeLazyAcquire(Args&& ...args)
+  {
+    return static_cast<Specialization*>(this)
+      ->makeLazyAcquire(std::forward<Args>(args)...);
+  }
+
+private:
+
   std::atomic<bool> acquired_;
   std::atomic<bool> paused_;
 
@@ -59,26 +68,10 @@ private:
 
 };
 
-
-template <class T>
-class ManagedWrapper : public Managed<T> {};
-
-template<>
-class ManagedWrapper<ros::Subscriber> : public Managed<ros::Subscriber>
+class ManagedSubscriber : public Managed<ManagedSubscriber, ros::Subscriber>
 {
 public:
-  using Managed<ros::Subscriber>::acquire;
-  using Managed<ros::Subscriber>::release;
-
-  void subscribe(const ros::NodeHandlePtr& node_handle)
-  {
-    return acquire(node_handle);
-  }
-
-  void shutdown()
-  {
-    return release();
-  }
+  using Managed<ManagedSubscriber, ros::Subscriber>::Managed;
 
   template<class Message>
   LazyAcquire makeLazyAcquire(
@@ -92,14 +85,33 @@ public:
     const std::string& topic, uint32_t queue_size, void(T::*fp)(M), T* obj,
     const ros::TransportHints& transport_hints = ros::TransportHints());
 
+
+  void subscribe(const ros::NodeHandlePtr& node_handle)
+  {
+    return acquire(node_handle);
+  }
+
+  void shutdown()
+  {
+    return release();
+  }
 };
 
-template<>
-class ManagedWrapper<ros::ServiceServer> : public Managed<ros::ServiceServer>
+class ManagedServiceServer : public Managed<ManagedServiceServer, ros::ServiceServer>
 {
 public:
-  using Managed<ros::ServiceServer>::acquire;
-  using Managed<ros::ServiceServer>::release;
+  template<class Message>
+  LazyAcquire makeLazyAcquire(
+    const std::string& topic, uint32_t queue_size,
+    const Callback<Message>& callback,
+    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
+    const ros::TransportHints& transport_hints = ros::TransportHints());
+
+  template<class M, class T>
+  LazyAcquire makeLazyAcquire(
+    const std::string& topic, uint32_t queue_size, void(T::*fp)(M), T* obj,
+    const ros::TransportHints& transport_hints = ros::TransportHints());
+
 
   void advertiseService(const ros::NodeHandlePtr& node_handle)
   {
@@ -112,8 +124,61 @@ public:
   }
 };
 
-typedef ManagedWrapper<ros::Subscriber> ManagedSubscriber;
-typedef ManagedWrapper<ros::ServiceServer> ManagedServiceServer;
+
+// template <class T>
+// class ManagedWrapper : public Managed<T> {};
+//
+// template<>
+// class ManagedWrapper<ros::Subscriber> : public Managed<ros::Subscriber>
+// {
+// public:
+//   using Managed<ros::Subscriber>::acquire;
+//   using Managed<ros::Subscriber>::release;
+//
+//   void subscribe(const ros::NodeHandlePtr& node_handle)
+//   {
+//     return acquire(node_handle);
+//   }
+//
+//   void shutdown()
+//   {
+//     return release();
+//   }
+//
+//   template<class Message>
+//   LazyAcquire makeLazyAcquire(
+//     const std::string& topic, uint32_t queue_size,
+//     const Callback<Message>& callback,
+//     const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
+//     const ros::TransportHints& transport_hints = ros::TransportHints());
+//
+//   template<class M, class T>
+//   LazyAcquire makeLazyAcquire(
+//     const std::string& topic, uint32_t queue_size, void(T::*fp)(M), T* obj,
+//     const ros::TransportHints& transport_hints = ros::TransportHints());
+//
+// };
+
+// template<>
+// class ManagedWrapper<ros::ServiceServer> : public Managed<ros::ServiceServer>
+// {
+// public:
+//   using Managed<ros::ServiceServer>::acquire;
+//   using Managed<ros::ServiceServer>::release;
+//
+//   void advertiseService(const ros::NodeHandlePtr& node_handle)
+//   {
+//     return acquire(node_handle);
+//   }
+//
+//   void shutdown()
+//   {
+//     return release();
+//   }
+// };
+
+//typedef ManagedWrapper<ros::Subscriber> ManagedSubscriber;
+//typedef ManagedWrapper<ros::ServiceServer> ManagedServiceServer;
 
 
 // typedef Managed<ros::Subscriber> ManagedSubscriber;

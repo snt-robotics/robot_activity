@@ -30,7 +30,7 @@ void ResourceManager<Resource>::resumeAll()
     r->resume();
 }
 
-template class ResourceManager<ros::Subscriber>;
-template class ResourceManager<ros::ServiceServer>;
+template class ResourceManager<ManagedSubscriber>;
+template class ResourceManager<ManagedServiceServer>;
 
 } // namespace robot_process
