@@ -49,7 +49,7 @@ public:
       stoppable_(stoppable),
       paused_(true)
   {
-    callback_ = wrap_callback(callback);
+    callback_ = wrapCallback(callback);
 
     frequency_ = frequency;
     period_ = ros::Duration(1.0 / frequency);
@@ -92,7 +92,7 @@ public:
     return [callback](const ros::TimerEvent& event) { callback(); };
   }
 
-  ros::TimerCallback wrap_callback(const ros::TimerCallback& callback)
+  ros::TimerCallback wrapCallback(const ros::TimerCallback& callback)
   {
     return [=](const ros::TimerEvent& ev)
     {

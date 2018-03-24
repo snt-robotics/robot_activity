@@ -1,53 +1,60 @@
-#include <robot_process/manager/managed_subscription.h>
+#include <robot_process/manager/managed_resource.h>
 
 namespace robot_process {
 
-ManagedSubscription::~ManagedSubscription()
+template<class Resource>
+Managed<Resource>::~Managed()
 {
-  ROS_DEBUG("ManagedSubscription::dtor");
+  ROS_DEBUG("Managed::dtor");
 }
 
-void ManagedSubscription::subscribe(const ros::NodeHandlePtr& node_handle)
+template<class Resource>
+void Managed<Resource>::acquire(const ros::NodeHandlePtr& node_handle)
 {
-  ROS_DEBUG("ManagedSubscription::subscribe executed!");
-  if (subscribed_)
+  ROS_DEBUG("Managed::acquire executed!");
+  if (acquired_)
   {
-    ROS_DEBUG("Already subscribed!");
+    ROS_DEBUG("Already acquired!");
     return;
   }
 
   ROS_DEBUG("Subscribing...");
-  subscriber_ = lazy_subscribe_(node_handle);
-  subscribed_ = true;
+  resource_ = lazy_acquire(node_handle);
+  acquired_ = true;
 }
 
-void ManagedSubscription::unsubscribe()
+template<class Resource>
+void Managed<Resource>::release()
 {
-  ROS_DEBUG("ManagedSubscription::unsubscribe executed!");
-  if (subscribed_)
+  ROS_DEBUG("Managed::release executed!");
+  if (acquired_)
   {
-    ROS_DEBUG("Unsubscribing...");
-    subscriber_.shutdown();
-    subscribed_ = false;
+    ROS_DEBUG("Releasing...");
+    resource_.shutdown();
+    acquired_ = false;
   }
   else
   {
-    ROS_DEBUG("Cannot unsubscribe ");
+    ROS_DEBUG("Cannot release ");
   }
 }
 
-void ManagedSubscription::pause()
+template<class Resource>
+void Managed<Resource>::pause()
 {
-  ROS_DEBUG("ManagedSubscription::pause executed!");
+  ROS_DEBUG("Managed::pause executed!");
   paused_ = true;
 }
 
-void ManagedSubscription::resume()
+template<class Resource>
+void Managed<Resource>::resume()
 {
-  ROS_DEBUG("ManagedSubscription::resume executed!");
+  ROS_DEBUG("Managed::resume executed!");
   paused_ = false;
 }
 
+template class Managed<ros::Subscriber>;
+template class Managed<ros::ServiceServer>;
 
 /*
 template<class M, class T>
