@@ -2,19 +2,12 @@
 
 namespace robot_process {
 
-ManagedSubscription::Impl::Impl()
-: subscribed_(false), paused_(true), subscriber_(), lazy_subscribe_()
+ManagedSubscription::~ManagedSubscription()
 {
-  ROS_DEBUG("ManagedSubscription::Imp::ctor !");
+  ROS_DEBUG("ManagedSubscription::dtor");
 }
 
-ManagedSubscription::Impl::~Impl()
-{
-  ROS_DEBUG("ManagedSubscription::Imp::dtor !");
-  unsubscribe();
-}
-
-void ManagedSubscription::Impl::subscribe(const ros::NodeHandlePtr& node_handle)
+void ManagedSubscription::subscribe(const ros::NodeHandlePtr& node_handle)
 {
   ROS_DEBUG("ManagedSubscription::subscribe executed!");
   if (subscribed_)
@@ -28,7 +21,7 @@ void ManagedSubscription::Impl::subscribe(const ros::NodeHandlePtr& node_handle)
   subscribed_ = true;
 }
 
-void ManagedSubscription::Impl::unsubscribe()
+void ManagedSubscription::unsubscribe()
 {
   ROS_DEBUG("ManagedSubscription::unsubscribe executed!");
   if (subscribed_)
@@ -43,48 +36,18 @@ void ManagedSubscription::Impl::unsubscribe()
   }
 }
 
-void ManagedSubscription::Impl::pause()
+void ManagedSubscription::pause()
 {
   ROS_DEBUG("ManagedSubscription::pause executed!");
   paused_ = true;
 }
 
-void ManagedSubscription::Impl::resume()
+void ManagedSubscription::resume()
 {
   ROS_DEBUG("ManagedSubscription::resume executed!");
   paused_ = false;
 }
 
-ManagedSubscription::ManagedSubscription(const ManagedSubscription& rhs)
-{
-  ROS_DEBUG("ManagedSubscription::ManagedSubscription::copy_ctor triggered!");
-  impl_ = rhs.impl_;
-}
-
-ManagedSubscription::ManagedSubscription()
-{
-  ROS_DEBUG("ManagedSubscription::ManagedSubscription::ctor triggered!");
-}
-
-void ManagedSubscription::subscribe(const ros::NodeHandlePtr& node_handle)
-{
-  impl_->subscribe(node_handle);
-}
-
-void ManagedSubscription::unsubscribe()
-{
-  impl_->unsubscribe();
-}
-
-void ManagedSubscription::pause()
-{
-  impl_->pause();
-}
-
-void ManagedSubscription::resume()
-{
-  impl_->resume();
-}
 
 /*
 template<class M, class T>

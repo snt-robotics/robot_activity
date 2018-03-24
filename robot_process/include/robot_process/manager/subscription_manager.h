@@ -14,11 +14,12 @@ public:
   ~SubscriptionManager() {}
 
   template<typename... Args>
-  void subscribe(Args&& ...args)
+  ManagedSubscriptionPtr subscribe(Args&& ...args)
   {
-    ManagedSubscription a(std::forward<Args>(args)...);
-    //subscriptions_.push_back(a);
-    //return a;
+    auto managed_subscription =
+      std::make_shared<ManagedSubscription>(std::forward<Args>(args)...);
+    subscriptions_.push_back(managed_subscription);
+    return managed_subscription;
   }
 
   void subscribeAll(const ros::NodeHandlePtr& node_handle);
@@ -28,7 +29,7 @@ public:
   void resumeAll();
 
 private:
-  std::vector<ManagedSubscription> subscriptions_;
+  std::vector<ManagedSubscriptionPtr> subscriptions_;
 };
 
 }

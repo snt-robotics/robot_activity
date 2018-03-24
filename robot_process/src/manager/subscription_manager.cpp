@@ -5,25 +5,25 @@ namespace robot_process {
 void SubscriptionManager::subscribeAll(const ros::NodeHandlePtr& node_handle)
 {
   for (auto&& sub: subscriptions_)
-    sub.subscribe(node_handle);
+    sub->subscribe(node_handle);
 }
 
 void SubscriptionManager::unsubscribeAll()
 {
   for (auto&& sub: subscriptions_)
-    sub.unsubscribe();
+    sub->unsubscribe();
 }
 
 void SubscriptionManager::pauseAll()
 {
   for (auto&& sub: subscriptions_)
-    sub.pause();
+    sub->pause();
 }
 
 void SubscriptionManager::resumeAll()
 {
   for (auto&& sub: subscriptions_)
-    sub.resume();
+    sub->resume();
 }
 
 } // namespace robot_process
