@@ -19,12 +19,9 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_library(robot_process
-
   src/robot_process.cpp
   src/managed_robot_process.cpp
-
   src/manager/managed_subscription.cpp
-  #src/manager/managed_subscription_impl.cpp
   src/manager/subscription_manager.cpp
 )
 add_dependencies(robot_process ${catkin_EXPORTED_TARGETS})

@@ -11,6 +11,7 @@
 #include <atomic>
 
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <ros/callback_queue.h>
 
 namespace robot_process {

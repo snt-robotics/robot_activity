@@ -2,9 +2,7 @@
 #define ROBOT_PROCESS_TUTORIALS_H
 
 #include <ros/ros.h>
-#include <robot_process/robot_process.h>
 #include <robot_process/managed_robot_process.h>
-#include <robot_process/manager/subscription_manager.h>
 
 #include <robot_process_msgs/State.h>
 

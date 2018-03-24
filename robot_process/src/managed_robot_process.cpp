@@ -4,52 +4,52 @@ namespace robot_process {
 
 void ManagedRobotProcess::onCreate()
 {
-  ROS_INFO("onCreate");
+  ROS_DEBUG("onCreate");
   onManagedCreate();
 }
 
 void ManagedRobotProcess::onTerminate()
 {
-  ROS_INFO("onTerminate");
+  ROS_DEBUG("onTerminate");
   onManagedTerminate();
 }
 
 void ManagedRobotProcess::onConfigure()
 {
-  ROS_INFO("onConfigure");
+  ROS_DEBUG("onConfigure");
   onManagedConfigure();
 }
 
 void ManagedRobotProcess::onUnconfigure()
 {
-  ROS_INFO("onUnconfigure");
+  ROS_DEBUG("onUnconfigure");
   onManagedUnconfigure();
 }
 
 void ManagedRobotProcess::onStart()
 {
-  ROS_INFO("onStart");
+  ROS_DEBUG("onStart");
   subscription_manager.subscribeAll(node_handle_private_);
   onManagedStart();
 }
 
 void ManagedRobotProcess::onStop()
 {
-  ROS_INFO("onStop");
+  ROS_DEBUG("onStop");
   subscription_manager.unsubscribeAll();
   onManagedStop();
 }
 
 void ManagedRobotProcess::onPause()
 {
-  ROS_INFO("onPause");
+  ROS_DEBUG("onPause");
   subscription_manager.pauseAll();
   onManagedPause();
 }
 
 void ManagedRobotProcess::onResume()
 {
-  ROS_INFO("onResume");
+  ROS_DEBUG("onResume");
   subscription_manager.resumeAll();
   onManagedResume();
 }

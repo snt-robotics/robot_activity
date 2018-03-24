@@ -9,6 +9,7 @@
 #define MANAGED_ROBOT_PROCESS_H
 
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <ros/callback_queue.h>
 
 #include <std_srvs/Empty.h>
@@ -16,7 +17,6 @@
 #include <robot_process_msgs/Error.h>
 
 #include <robot_process/robot_process.h>
-
 #include <robot_process/manager/subscription_manager.h>
 
 namespace robot_process {

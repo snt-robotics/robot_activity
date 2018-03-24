@@ -2,6 +2,7 @@
 #define SUBSCRIPTION_MANAGER_H
 
 #include <ros/ros.h>
+#include <ros/console.h>
 
 #include <robot_process/manager/managed_subscription.h>
 

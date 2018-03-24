@@ -12,7 +12,7 @@ void ManagedSubscription::subscribe(const ros::NodeHandlePtr& node_handle)
   ROS_DEBUG("ManagedSubscription::subscribe executed!");
   if (subscribed_)
   {
-    ROS_WARN("Already subscribed!");
+    ROS_DEBUG("Already subscribed!");
     return;
   }
 
@@ -32,7 +32,7 @@ void ManagedSubscription::unsubscribe()
   }
   else
   {
-    ROS_WARN("Cannot unsubscribe ");
+    ROS_DEBUG("Cannot unsubscribe ");
   }
 }
 

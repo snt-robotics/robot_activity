@@ -1,9 +1,10 @@
 #ifndef MANAGED_SUBSCRIPTION_H
 #define MANAGED_SUBSCRIPTION_H
 
-#include <ros/ros.h>
-
 #include <atomic>
+
+#include <ros/ros.h>
+#include <ros/console.h>
 
 namespace robot_process {
 

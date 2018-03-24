@@ -1,4 +1,4 @@
-#include "robot_process_tutorials/robot_process_tutorials.h"
+#include <robot_process_tutorials/robot_process_tutorials.h>
 
 namespace robot_process_tutorials {
 
@@ -7,7 +7,7 @@ namespace robot_process_tutorials {
     ROS_INFO_STREAM(getNamespace() << " " << counter);
     counter++;
   }
-  
+
   void RobotProcessTutorials::msgCallback(boost::shared_ptr<robot_process_msgs::State> msg)
   {
     ROS_INFO_STREAM("MSG CALLBACK " << unsigned(msg->state));
@@ -35,8 +35,8 @@ namespace robot_process_tutorials {
       meaning that Timer will only be fired in RUNNING state
     */
     registerIsolatedTimer(cb, 1.0, true);
-    
-    
+
+
     /*
       registers timer with a member function of this class as a callback,
       which is std::bind'ed or boost:bind'ed

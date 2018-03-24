@@ -8,6 +8,7 @@
 #define ROBOT_PROCESS_H
 
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <ros/callback_queue.h>
 
 #include <std_srvs/Empty.h>
