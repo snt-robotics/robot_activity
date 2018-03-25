@@ -1,3 +1,10 @@
+/*!
+   \file resource_manager.h
+   \brief ResourceManager<R> class implements a resource manager for 
+    subscriptions and services 
+   \author Maciej Marcin ZURAD
+   \date 01/03/2018
+*/
 #ifndef SUBSCRIPTION_MANAGER_H
 #define SUBSCRIPTION_MANAGER_H
 

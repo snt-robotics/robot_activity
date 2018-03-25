@@ -1,3 +1,12 @@
+/*!
+   \file managed_subscriber.h
+   \brief ManagedSubscriber class implements a wrapper around ros::Subscriber
+     with same functionality as ros::Subscriber, but also includes
+     possibility to pause/resume callbacks as well as re-subscribe
+    subscriptions and services 
+   \author Maciej Marcin ZURAD
+   \date 01/03/2018
+*/
 #ifndef MANAGED_SUBSCRIBER_H
 #define MANAGED_SUBSCRIBER_H
 
