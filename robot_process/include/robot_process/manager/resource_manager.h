@@ -4,9 +4,11 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include <robot_process/manager/managed_resource.h>
+#include <robot_process/manager/managed_subscriber.h>
+#include <robot_process/manager/managed_serviceserver.h>
 
 namespace robot_process {
+namespace resource {
 
 template <class Resource>
 class ResourceManager
@@ -18,10 +20,9 @@ public:
   template<typename... Args>
   typename Resource::SharedPtr acquire(Args&& ...args)
   {
-    auto managed_subscription =
-      std::make_shared<Resource>(std::forward<Args>(args)...);
-    resources_.push_back(managed_subscription);
-    return managed_subscription;
+    auto resource = std::make_shared<Resource>(std::forward<Args>(args)...);
+    resources_.push_back(resource);
+    return resource;
   }
 
   void acquireAll(const ros::NodeHandlePtr& node_handle);
@@ -66,6 +67,7 @@ public:
 typedef RMWrapper<ManagedSubscriber> SubscriberManager;
 typedef RMWrapper<ManagedServiceServer> ServiceServerManager;
 
-}
+} // namespace resource
+} // namespace robot_process
 
 #endif

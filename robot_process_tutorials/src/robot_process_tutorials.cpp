@@ -47,7 +47,7 @@ namespace robot_process_tutorials {
       1.0,
       false);
 
-    subscription_manager.subscribe("/heartbeat", 100, &RobotProcessTutorials::msgCallback, this);
+    subscriber_manager.subscribe("/heartbeat", 100, &RobotProcessTutorials::msgCallback, this);
   }
 
   void RobotProcessTutorials::onManagedTerminate()

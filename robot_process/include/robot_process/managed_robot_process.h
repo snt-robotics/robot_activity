@@ -27,7 +27,8 @@ public:
 
   using RobotProcess::RobotProcess;
 
-  SubscriberManager subscription_manager;
+  resource::SubscriberManager subscriber_manager;
+  resource::ServiceServerManager service_manager;
 
 private:
 

@@ -8,7 +8,7 @@
   <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${logger}] [${time}]: ${message}"/>
 
   <node pkg="robot_process_tutorials" type="robot_process_tutorials_node" name="robot_process_tutorials"
-    output="screen">
+    output="screen" launch-prefix="valgrind --leak-check=full -v">
     <param name="wait_for_supervisor" type="bool" value="$(arg wait_for_supervisor)" />
     <param name="autostart" type="bool" value="$(arg autostart)" />
     <param name="autostart_after_reconfigure" type="bool" value="$(arg autostart_after_reconfigure)" />

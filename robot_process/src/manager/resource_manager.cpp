@@ -1,6 +1,7 @@
 #include <robot_process/manager/resource_manager.h>
 
 namespace robot_process {
+namespace resource {
 
 template<class Resource>
 void ResourceManager<Resource>::acquireAll(const ros::NodeHandlePtr& node_handle)
@@ -33,4 +34,5 @@ void ResourceManager<Resource>::resumeAll()
 template class ResourceManager<ManagedSubscriber>;
 template class ResourceManager<ManagedServiceServer>;
 
+} // namespace resource
 } // namespace robot_process

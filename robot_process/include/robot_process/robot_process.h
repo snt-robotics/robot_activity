@@ -63,6 +63,9 @@ protected:
   const std::string& getNamespace() const;
 
 private:
+  std::vector<std::shared_ptr<robot_process::IsolatedAsyncTimer>> process_timers_;
+
+  std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
 
   std::string node_namespace_;
   std::string node_name_;
@@ -87,9 +90,7 @@ private:
 
   State current_state_ = State::LAUNCHING;
 
-  std::shared_ptr<robot_process::IsolatedAsyncTimer> heartbeat_timer_;
 
-  std::vector<std::shared_ptr<robot_process::IsolatedAsyncTimer>> process_timers_;
 
   virtual void onCreate() = 0;
   virtual void onTerminate() = 0;

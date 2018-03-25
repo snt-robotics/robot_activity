@@ -29,28 +29,32 @@ void ManagedRobotProcess::onUnconfigure()
 void ManagedRobotProcess::onStart()
 {
   ROS_DEBUG("onStart");
-  subscription_manager.acquireAll(node_handle_private_);
+  service_manager.acquireAll(node_handle_private_);
+  subscriber_manager.acquireAll(node_handle_private_);
   onManagedStart();
 }
 
 void ManagedRobotProcess::onStop()
 {
   ROS_DEBUG("onStop");
-  subscription_manager.releaseAll();
+  service_manager.releaseAll();
+  subscriber_manager.releaseAll();
   onManagedStop();
 }
 
 void ManagedRobotProcess::onPause()
 {
   ROS_DEBUG("onPause");
-  subscription_manager.pauseAll();
+  service_manager.pauseAll();
+  subscriber_manager.pauseAll();
   onManagedPause();
 }
 
 void ManagedRobotProcess::onResume()
 {
   ROS_DEBUG("onResume");
-  subscription_manager.resumeAll();
+  service_manager.resumeAll();
+  subscriber_manager.resumeAll();
   onManagedResume();
 }
 
