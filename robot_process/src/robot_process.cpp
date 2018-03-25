@@ -29,7 +29,7 @@ RobotProcess::RobotProcess(int argc, char* argv[],
 
 RobotProcess::~RobotProcess()
 {
-  ROS_DEBUG_STREAM("RobotProcess destructor [" << node_namespace_ << "]");
+  ROS_DEBUG_STREAM("RobotProcess dtor [" << getNamespace() << "]");
 }
 
 RobotProcess& RobotProcess::init(bool autostart)
@@ -93,16 +93,16 @@ RobotProcess& RobotProcess::init(bool autostart)
   return *this;
 }
 
-void RobotProcess::run(uint8_t threads) const
+void RobotProcess::run(uint8_t threads)
 {
-  ros::MultiThreadedSpinner spinner(threads);
-  spinner.spin();
+  runAsync(threads);
+  ros::waitForShutdown();
 }
 
-void RobotProcess::runAsync(uint8_t threads) const
+void RobotProcess::runAsync(uint8_t threads)
 {
-  ros::AsyncSpinner spinner(threads);
-  spinner.start();
+  global_callback_queue_spinner_ = std::make_shared<ros::AsyncSpinner>(threads);
+  global_callback_queue_spinner_->start();
 }
 
 void RobotProcess::notifyError(uint8_t error_type,

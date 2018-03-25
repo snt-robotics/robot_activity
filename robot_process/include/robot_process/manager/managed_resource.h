@@ -38,31 +38,14 @@ public:
 
 protected:
 
-  template <class Message>
-  using Callback = boost::function<void(Message)>;
-
-  template<class Message>
-  Callback<Message> wrapCallback(const Callback<Message>& callback) const
-  {
-    return [this, &callback](Message message) {
-      ROS_DEBUG("wrapped callback executed!");
-      if (!paused_)
-        callback(message);
-      else
-        ROS_DEBUG("callback is paused!");
-    };
-  }
-
   typedef std::function<Resource(const ros::NodeHandlePtr&)> LazyAcquirer;
 
   template<typename... Args>
-  LazyAcquirer makeLazyAcquirer(Args&& ...args)
+  LazyAcquirer makeLazyAcquirer(Args&& ...args) const
   {
-    return static_cast<Specialization*>(this)
+    return static_cast<const Specialization*>(this)
       ->makeLazyAcquirer(std::forward<Args>(args)...);
   }
-
-private:
 
   std::atomic<bool> acquired_;
   std::atomic<bool> paused_;

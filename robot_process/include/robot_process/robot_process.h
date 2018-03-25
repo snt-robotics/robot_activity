@@ -44,8 +44,8 @@ public:
   virtual ~RobotProcess();
 
   RobotProcess& init(bool autostart = false);
-  void run(uint8_t threads = 0) const;
-  void runAsync(uint8_t threads = 0) const;
+  void run(uint8_t threads = 0);
+  void runAsync(uint8_t threads = 0);
 
 protected:
 
@@ -88,9 +88,9 @@ private:
   ros::Publisher process_state_pub_;
   ros::Publisher process_error_pub_;
 
+  std::shared_ptr<ros::AsyncSpinner> global_callback_queue_spinner_;
+
   State current_state_ = State::LAUNCHING;
-
-
 
   virtual void onCreate() = 0;
   virtual void onTerminate() = 0;

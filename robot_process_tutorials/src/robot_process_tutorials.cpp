@@ -8,9 +8,18 @@ namespace robot_process_tutorials {
     counter++;
   }
 
-  void RobotProcessTutorials::msgCallback(boost::shared_ptr<robot_process_msgs::State> msg)
+  void RobotProcessTutorials::heartbeatCallback(
+    boost::shared_ptr<robot_process_msgs::State const> msg)
   {
-    ROS_INFO_STREAM("MSG CALLBACK " << unsigned(msg->state));
+    ROS_INFO_STREAM(getNamespace() << " State: " << unsigned(msg->state));
+  }
+
+  bool RobotProcessTutorials::serviceCallback(
+    std_srvs::Empty::Request& request, 
+    std_srvs::Empty::Response& response)
+  {
+    ROS_INFO_STREAM(getNamespace() << " Service called, returning true");
+    return true;
   }
 
   void RobotProcessTutorials::onManagedCreate()
@@ -30,6 +39,7 @@ namespace robot_process_tutorials {
       ROS_INFO_STREAM(getNamespace() << " " << context);
       context++;
     };
+
     /*
       registers the previous callback in timer at 1Hz, which is stoppable
       meaning that Timer will only be fired in RUNNING state
@@ -47,7 +57,18 @@ namespace robot_process_tutorials {
       1.0,
       false);
 
-    subscriber_manager.subscribe("/heartbeat", 100, &RobotProcessTutorials::msgCallback, this);
+    subscriber_manager.subscribe("/heartbeat", 100, 
+      &RobotProcessTutorials::heartbeatCallback, this);
+
+    boost::function<void (const boost::shared_ptr<robot_process_msgs::State const>&)> callback = 
+    [this](const boost::shared_ptr<robot_process_msgs::State const>& msg) {
+      ROS_INFO_STREAM(getNamespace() << " State: " << unsigned(msg->state));
+    };
+
+    subscriber_manager.subscribe("/heartbeat", 100, callback);
+
+    service_manager.advertiseService("/test", &RobotProcessTutorials::serviceCallback, this);
+
   }
 
   void RobotProcessTutorials::onManagedTerminate()

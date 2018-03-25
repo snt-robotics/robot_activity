@@ -24,35 +24,144 @@ public:
     return release();
   }
 
-  template<class Message>
-  LazyAcquirer makeLazyAcquirer(
-    const std::string& topic, uint32_t queue_size,
-    const Callback<Message>& callback,
-    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
-    const ros::TransportHints& transport_hints = ros::TransportHints())
+  template <typename ...Args>
+  using ServiceCallback = boost::function<bool(Args...)>;
+
+  template <typename ...Args>
+  ServiceCallback<Args...> wrapServiceCallback(
+    const ServiceCallback<Args...>& callback) const
   {
-    ROS_DEBUG("makeLazyAcquirer Callback<Message>& callback form exec");
-    return [=](const ros::NodeHandlePtr& nh) -> ros::Subscriber {
-      ROS_DEBUG("Subscribing...");
-      return nh->subscribe<Message>(
-        topic,
-        queue_size,
-        static_cast<Callback<Message>>(wrapCallback(callback)),
-        tracked_object,
-        transport_hints);
+    return [this, &callback](Args ... args) -> bool {
+      ROS_DEBUG("wrapped service callback executed!");
+      if (paused_)
+      {
+        ROS_DEBUG("service is paused!");
+        return false;
+      }
+      return callback(std::forward<Args>(args)...);
     };
   }
 
-  template<class M, class T>
+  template<class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
-    const std::string& topic, uint32_t queue_size, void(T::*fp)(M), T* obj,
-    const ros::TransportHints& transport_hints = ros::TransportHints())
+    const std::string& service, 
+    const ServiceCallback<MReq&, MRes&>& callback,
+    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr()) const
   {
-    ROS_DEBUG("makeLazyAcquirer void(T::*fp)(M), T* obj, form exec");
-    Callback<M> callback = boost::bind(fp, obj, _1);
-    return makeLazyAcquirer(topic, queue_size, callback, ros::VoidConstPtr(), transport_hints);
+    ROS_DEBUG("makeLazyAcquirer ServiceCallback<MReq&, MRes&>&");
+    return [=](const ros::NodeHandlePtr& nh) -> ros::ServiceServer {
+      ROS_DEBUG("Advertising...");
+      return nh->advertiseService(
+        service,
+        static_cast<ServiceCallback<MReq&, MRes&>>(wrapServiceCallback(callback)),
+        tracked_object);
+    };
+  }
+ 
+  template<class ServiceEvent>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    const ServiceCallback<ServiceEvent&>& callback, 
+    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr()) const
+  {
+    ROS_DEBUG("makeLazyAcquirer ServiceEventCallback<ServiceEvent&>&");
+    return [=](const ros::NodeHandlePtr& nh) -> ros::ServiceServer {
+      ROS_DEBUG("Advertising...");
+      return nh->advertiseService(
+        service,
+        static_cast<ServiceCallback<ServiceEvent&>>(wrapServiceCallback(callback)),
+        tracked_object);
+    };
   }
 
+  template<class T, class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(T::*srv_func)(MReq&, MRes&), 
+    T *obj) const
+  {
+    ServiceCallback<MReq&, MRes&> callback = boost::bind(srv_func, obj, _1, _2);
+    return makeLazyAcquirer(service, callback);
+  }
+
+  template<class T, class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(T::*srv_func)(ros::ServiceEvent<MReq, MRes>&), 
+    T *obj) const
+  {
+    ServiceCallback<ros::ServiceEvent<MReq, MRes>&> callback 
+      = boost::bind(srv_func, obj, _1);
+    return makeLazyAcquirer(service, callback);
+  }
+
+  template<class T, class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(T::*srv_func)(MReq &, MRes &), 
+    const boost::shared_ptr<T>& obj) const
+  {
+    ServiceCallback<MReq&, MRes&> callback = boost::bind(srv_func, obj.get(), _1, _2);
+    return makeLazyAcquirer(service, callback, obj);
+  }
+
+  template<class T, class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(T::*srv_func)(ros::ServiceEvent<MReq, MRes>&), 
+    const boost::shared_ptr<T>& obj) const
+  {
+    ServiceCallback<ros::ServiceEvent<MReq, MRes>&> callback 
+      = boost::bind(srv_func, obj.get(), _1);
+    return makeLazyAcquirer(service, callback, obj);
+  }
+
+  template<class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(*srv_func)(MReq&, MRes&)) const
+  {
+    ServiceCallback<MReq&, MRes&> callback = boost::bind(srv_func);
+    return makeLazyAcquirer(service, callback);
+  }
+
+  template<class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    bool(*srv_func)(ros::ServiceEvent<MReq, MRes>&)) const
+  {
+    ServiceCallback<ros::ServiceEvent<MReq, MRes>&> callback 
+      = boost::bind(srv_func);
+    return makeLazyAcquirer(service, callback);
+  }
+
+
+  /* TODO - remove if unneccessary
+  template<class MReq, class MRes>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    const boost::function<bool(MReq&, MRes&)>& callback, 
+    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr())
+  {
+    AdvertiseServiceOptions ops;
+    ops.template init<MReq, MRes>(service, callback);
+    ops.tracked_object = tracked_object;
+    return makeLazyAcquirer(ops);
+  }
+
+  template<class S>
+  LazyAcquirer makeLazyAcquirer(
+    const std::string& service, 
+    const boost::function<bool(S&)>& callback, 
+    const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr())
+  {
+    AdvertiseServiceOptions ops;
+    ops.template initBySpecType<S>(service, callback);
+    ops.tracked_object = tracked_object;
+    return makeLazyAcquirer(ops);
+  }
+  */
+ 
 };
 
 } // namespace resource

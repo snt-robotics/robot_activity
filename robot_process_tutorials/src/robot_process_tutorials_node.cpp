@@ -8,11 +8,13 @@ int main(int argc, char *argv[]) {
   rbt1.init().runAsync();
 
   // RobotProcessTutorials rbt2(argc, argv, "second");
-  // rbt2.init().runAsync();
+  // rbt2.init().run();
 
-  //ros::waitForShutdown();
+  ros::waitForShutdown();
 
-  ros::Duration(2.0).sleep();
+  ros::Duration(3.0).sleep();
+
+
 
   return 0;
 }

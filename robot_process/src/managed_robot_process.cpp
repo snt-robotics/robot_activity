@@ -2,6 +2,11 @@
 
 namespace robot_process {
 
+ManagedRobotProcess::~ManagedRobotProcess()
+{
+  ROS_DEBUG_STREAM("ManagedRobotProcess dtor [" << getNamespace() << "]");
+}
+
 void ManagedRobotProcess::onCreate()
 {
   ROS_DEBUG("onCreate");

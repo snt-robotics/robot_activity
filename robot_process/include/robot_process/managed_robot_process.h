@@ -26,6 +26,7 @@ class ManagedRobotProcess : public RobotProcess
 public:
 
   using RobotProcess::RobotProcess;
+  virtual ~ManagedRobotProcess();
 
   resource::SubscriberManager subscriber_manager;
   resource::ServiceServerManager service_manager;

@@ -5,15 +5,16 @@
 #include <robot_process/managed_robot_process.h>
 
 #include <robot_process_msgs/State.h>
+#include <std_srvs/Empty.h>
 
 
 namespace robot_process_tutorials {
 
 class RobotProcessTutorials : public robot_process::ManagedRobotProcess
 {
-private:
-
+public:
   using ManagedRobotProcess::ManagedRobotProcess;
+  ~RobotProcessTutorials() { }
 
   void onManagedCreate() override;
   void onManagedTerminate() override;
@@ -28,9 +29,10 @@ private:
   void onManagedPause() override;
 
 private:
-
   void timerCallback();
-  void msgCallback(boost::shared_ptr<robot_process_msgs::State> i);
+  void heartbeatCallback(boost::shared_ptr<robot_process_msgs::State const> msg);
+
+  bool serviceCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
   int counter = 0;
 };
