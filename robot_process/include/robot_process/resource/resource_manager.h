@@ -4,8 +4,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include <robot_process/manager/managed_subscriber.h>
-#include <robot_process/manager/managed_serviceserver.h>
+#include <robot_process/resource/managed_subscriber.h>
+#include <robot_process/resource/managed_serviceserver.h>
 
 namespace robot_process {
 namespace resource {

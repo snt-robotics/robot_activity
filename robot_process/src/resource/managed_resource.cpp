@@ -1,4 +1,4 @@
-#include <robot_process/manager/managed_resource.h>
+#include <robot_process/resource/managed_resource.h>
 
 namespace robot_process {
 namespace resource {

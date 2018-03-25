@@ -17,7 +17,7 @@
 #include <robot_process_msgs/Error.h>
 
 #include <robot_process/robot_process.h>
-#include <robot_process/manager/resource_manager.h>
+#include <robot_process/resource/resource_manager.h>
 
 namespace robot_process {
 
