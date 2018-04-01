@@ -3,7 +3,7 @@
    \brief Managed<Derived,R> class implements a base class which manages 
      ROS resources, such as ros::Subscriber and ros::ServiceServer.
      It uses CRTP idiom for static polymorphism and adds functionality to
-     pause and resume, as well as acquire and release.
+     pause and resume, as well as acquire and release the resource.
    \author Maciej Marcin ZURAD
    \date 01/03/2018
 */
@@ -22,20 +22,20 @@ class ManagedSubscriber;
 class ManagedServiceServer;
 
 /**
- * @brief Wrapper for ROS resources, such as Subscriber and ServiceServer
+ * @brief Wrapper around ROS resources, such as ros::Subscriber and ros::ServiceServer
  * @details This class adds additional functionality to ROS resources such
  *          as pausing, resuming and re-acquiring it. It also implements 
  *          lazy acquisition of a resource due to the fact that the resource is 
- *          not acquired upon instantiation, but when acquire is called.
+ *          not acquired upon instantiation, but when *acquire* is called.
  *          The class is the base wrapper class and has to be sub-classed by a 
  *          specific resource. We use CRTP idiom, hence the templated class,
  *          in order to achieve static-time (compile-time) polymorphism.
  *        
  * 
- * @tparam Specialization CRTP derived class
+ * @tparam Derived CRTP derived class
  * @tparam Resource ROS resource, such as ros::Subscriber or ros::ServiceServer
  */
-template <class Specialization, class Resource>
+template <class Derived, class Resource>
 class Managed
 {
 public:
@@ -62,8 +62,9 @@ public:
    *          a node handle. 
    * 
    * @tparam Args Types have to match ROS resource creation function signature 
-   *         (e.g node_handle->subscribe(...))
-   * @param args Specify the resource, e.g. topic, queue_size and a callback
+   *         (e.g node_handle.subscribe(...))
+   * @param args Specify the resource, e.g. topic, queue_size and a callback in 
+   *             the case of a ros::Subscriber
    */
   template<typename... Args>
   Managed(Args&& ...args)
@@ -76,12 +77,13 @@ public:
   /**
    * @brief Acquires the resource if it's not already acquired
    * 
-   * @param node_handle NodeHandle is needed for acquisition like in ROS
+   * @param node_handle NodeHandle is needed for acquisition, same as in ROS
    */
   void acquire(const ros::NodeHandlePtr& node_handle);
 
   /**
-   * @brief Release the resource if it's already acquired
+   * @brief Releases the resource if it's already acquired. shutdown() method in
+   *        case of ros::Subscriber and ros::ServiceServer
    */
   void release();
 
@@ -98,7 +100,7 @@ public:
    */
   void resume();
 
-  typedef std::shared_ptr<Managed<Specialization, Resource>> SharedPtr;
+  typedef std::shared_ptr<Managed<Derived, Resource>> SharedPtr;
 
 protected:
 
@@ -106,8 +108,8 @@ protected:
 
   /**
    * @brief Lazily acquires a resource
-   * @details Creates a function that when called with a ROS node handle will 
-   *          acquire the specifiec resource
+   * @details Creates a function such that, when called with a ROS node handle 
+   *          will acquire the specific resource
    * 
    * @param args Specifies the resource 
    * @return Function that will acquire resource when called with a node handle
@@ -115,7 +117,7 @@ protected:
   template<typename... Args>
   LazyAcquirer makeLazyAcquirer(Args&& ...args) const
   {
-    return static_cast<const Specialization*>(this)
+    return static_cast<const Derived*>(this)
       ->makeLazyAcquirer(std::forward<Args>(args)...);
   }
 

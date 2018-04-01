@@ -18,39 +18,86 @@
 namespace robot_process {
 namespace resource {
 
+/**
+ * @brief Implementation of Managed class for ros::ServiceServer
+ * @details Adds additional functionality to ros::ServiceServer resource by
+ *          wrapping it. The service server can be shutdowned, advertised and
+ *          paused. Shutting down has the same effect as in ROS, while 
+ *          advertising does not require any arguments, since they are passed in
+ *          the inherited constructor. Pausing the service, will cause 
+ *          the callback to return false immediately.
+ * 
+ */
 class ManagedServiceServer : public Managed<ManagedServiceServer, ros::ServiceServer>
 {
 public:
+  /**
+   * @brief Inherited variadic constructor from the Managed class
+   * @details Creates the ROS service but not yet advertises it, which is 
+   *          left until advertiseService is called with a node handle.
+   *          The constructor polimorphically calls *makeLazyAcquirer* 
+   *          forwarding all the arguments to it. All function signatures of 
+   *          makeLazyAcquirer must match the actual function signatures for 
+   *          ros::NodeHandle::advertiseService function. Therefore, 
+   *          in order to create a managed ros::ServiceServer
+   *          we have to call this constructor with the same arguments as 
+   *          we would call ros::NodeHandle::advertiseService.
+   *          Due to the CRTP idiom, the polymorphic call is resolved 
+   *          at compile-time without incurring additional run-time cost.
+   * 
+   */
   using Managed<ManagedServiceServer, ros::ServiceServer>::Managed;
 
+  /**
+   * @brief Advertises the ROS service given a node handle
+   * @details Since the ROS service is fully desribed upon instantiation,
+   *          advertising only requires a node handle. The function is idempotent
+   *          and can be called multiple times without any side-effect. The service
+   *          can also be re-advertised after being shutdowned without respecifying
+   *          arguments describing the service.
+   * 
+   * @param node_handle Node handle required for the actual call to 
+   *                    ros::NodeHandle::advertiseService embedded inside
+   */
   void advertiseService(const ros::NodeHandlePtr& node_handle)
   {
-    return acquire(node_handle);
+    acquire(node_handle);
   }
 
+  /**
+   * @brief Shutdowns the ROS service
+   * @details Has the same effect as ros::ServiceServer::shutdown function if
+   *          the service was advertised, otherwise does not have any effect
+   * 
+   */
   void shutdown()
   {
-    return release();
+    release();
   }
 
+  /**
+   * @brief Typedef for ROS service callbacks
+   * 
+   * @tparam Callback arguments
+   */
   template <typename ...Args>
   using ServiceCallback = boost::function<bool(Args...)>;
 
-  template <typename ...Args>
-  ServiceCallback<Args...> wrapServiceCallback(
-    const ServiceCallback<Args...>& callback) const
-  {
-    return [this, &callback](Args ... args) -> bool {
-      ROS_DEBUG("wrapped service callback executed!");
-      if (paused_)
-      {
-        ROS_DEBUG("service is paused!");
-        return false;
-      }
-      return callback(std::forward<Args>(args)...);
-    };
-  }
-
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param callback Service callback specified as boost::function accepting two
+   *                 arguments
+   * @param tracked_object Object to be tracked, whose destruction will terminate the service
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -67,6 +114,20 @@ public:
     };
   }
  
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param callback Service callback specified as boost::function accepting one
+   *                 argument
+   * @param tracked_object Object to be tracked, whose destruction will terminate the service
+   * @tparam ServiceEvent Service callback's event message type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class ServiceEvent>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -83,6 +144,22 @@ public:
     };
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a member function of class T, which accepts
+   *                 two arguments: message request and response and returns a bool
+   * @param obj Object to be used when calling the pointed function
+   * @tparam T Class, where the member function is defined
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class T, class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -93,6 +170,23 @@ public:
     return makeLazyAcquirer(service, callback);
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a member function of class T, which accepts
+   *                 one argument: service event and returns a bool
+   * @param obj Raw pointer to the object to be used when 
+   *            calling the pointed function
+   * @tparam T Class, where the member function is defined
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class T, class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -104,6 +198,25 @@ public:
     return makeLazyAcquirer(service, callback);
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a member function of class T, which accepts
+   *                 two arguments: message request and response and returns a bool
+   * @param obj boost::shared_ptr to the object to be used when 
+   *            calling the pointed function, it will also be treated 
+   *            as the tracked object, whose destruction will trigger a 
+   *            service shutdown
+   * @tparam T Class, where the the member function is defined
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class T, class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -114,6 +227,25 @@ public:
     return makeLazyAcquirer(service, callback, obj);
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a member function of class T, which accepts
+   *                 one argument: a service event and returns a bool
+   * @param obj boost::shared_ptr to the object to be used when 
+   *            calling the pointed function, it will also be treated 
+   *            as the tracked object, whose destruction will trigger a 
+   *            service shutdown
+   * @tparam T Class, where the the member function is defined
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class T, class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -125,6 +257,21 @@ public:
     return makeLazyAcquirer(service, callback, obj);
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a function, which accepts
+   *                 two arguments: message request and response 
+   *                 and returns a bool
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -134,6 +281,20 @@ public:
     return makeLazyAcquirer(service, callback);
   }
 
+  /**
+   * @brief Creates a function that advertises a ROS service when called
+   * @details Returns a lambda, which given a node handle will advertise the 
+   *          ROS service. This lambda is called during advertiseService call
+   *          and the result is assigned as the managed resource, which in this
+   *          case is ros::ServiceServer
+   * 
+   * @param service Name of the service to be advertised
+   * @param srv_func Pointer to a function, which accepts
+   *                 one argument: service event and returns a bool
+   * @tparam MReq Service callback's message request type
+   * @tparam MRes Service callback's message response type
+   * @return Lambda, which return a ros::ServiceServer
+   */
   template<class MReq, class MRes>
   LazyAcquirer makeLazyAcquirer(
     const std::string& service, 
@@ -170,7 +331,31 @@ public:
     return makeLazyAcquirer(ops);
   }
   */
- 
+private:
+
+  /**
+   * @brief Wraps the service callback
+   * @details Allows for pausing/resuming the servce by adding a check at 
+   *          run-time. If paused, the service will return false immediately.
+   * 
+   * @param callback [description]
+   * @return [description]
+   */
+  template <typename ...Args>
+  ServiceCallback<Args...> wrapServiceCallback(
+    const ServiceCallback<Args...>& callback) const
+  {
+    return [this, &callback](Args ... args) -> bool {
+      ROS_DEBUG("wrapped service callback executed!");
+      if (paused_)
+      {
+        ROS_DEBUG("service is paused!");
+        return false;
+      }
+      return callback(std::forward<Args>(args)...);
+    };
+  }
+
 };
 
 } // namespace resource
