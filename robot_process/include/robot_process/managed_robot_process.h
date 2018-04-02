@@ -40,7 +40,7 @@ public:
   using RobotProcess::RobotProcess;
 
   /**
-   * @brief Default virtual destructor
+   * @brief Virtual destructor
    */
   virtual ~ManagedRobotProcess();
 

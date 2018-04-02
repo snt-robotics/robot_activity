@@ -55,11 +55,10 @@ RobotProcess& RobotProcess::init(bool autostart)
   notifyState();
 
   terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED});
-  reconfigure_server_ = registerStateChangeRequest("reconfigure",
-    {
-      State::UNCONFIGURED,
-      autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
-    });
+  reconfigure_server_ = registerStateChangeRequest("reconfigure", {
+    State::UNCONFIGURED,
+    autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
+  });
 
   restart_server_ = registerStateChangeRequest("restart", {State::STOPPED, State::RUNNING});
   start_server_   = registerStateChangeRequest("start", {State::RUNNING});
