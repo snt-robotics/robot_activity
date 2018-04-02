@@ -1,5 +1,5 @@
 /*!
-   \file managed_subscriber.h
+   \file managed_serviceserver.h
    \brief ManagedServiceServer class implements a wrapper around ros::ServiceServer
      with same functionality as ros::ServiceServer, but also includes
      possibility to pause/resume service calls as well as re-advertise

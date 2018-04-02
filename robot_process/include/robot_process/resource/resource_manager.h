@@ -5,8 +5,8 @@
    \author Maciej Marcin ZURAD
    \date 01/03/2018
 */
-#ifndef SUBSCRIPTION_MANAGER_H
-#define SUBSCRIPTION_MANAGER_H
+#ifndef RESOURCE0_MANAGER_H
+#define RESOURCE0_MANAGER_H
 
 #include <ros/ros.h>
 #include <ros/console.h>

@@ -1,5 +1,5 @@
 /*!
-   \file managed_subscriber.h
+   \file managed_resource.h
    \brief Managed<Derived,R> class implements a base class which manages 
      ROS resources, such as ros::Subscriber and ros::ServiceServer.
      It uses CRTP idiom for static polymorphism and adds functionality to
