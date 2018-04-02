@@ -122,23 +122,23 @@ protected:
   }
 
   /**
-   * \brief Atomic flag specifing whether the resource is acquired or not
+   * @brief Atomic flag specifing whether the resource is acquired or not
    */
   std::atomic<bool> acquired_;
 
   /**
-   * \brief Atomic flag specifing whether the resource is paused or not
+   * @brief Atomic flag specifing whether the resource is paused or not
    */
   std::atomic<bool> paused_;
 
 
   /**
-   * \brief The actual resource controlled by this class
+   * @brief The actual resource controlled by this class
    */
   Resource resource_;
 
   /**
-   * \brief Function that will acquire the resource upon calling with a node handle
+   * @brief Function that will acquire the resource upon calling with a node handle
    */
   LazyAcquirer lazy_acquirer_;
 
