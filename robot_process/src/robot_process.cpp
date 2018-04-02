@@ -69,7 +69,7 @@ RobotProcess& RobotProcess::init(bool autostart)
   ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
   ROS_INFO("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
 
-  boost::function<void(void)> heartbeat_callback = [this]() { notifyState(); };
+  auto heartbeat_callback = [this]() { notifyState(); };
   heartbeat_timer_ = std::make_shared<robot_process::IsolatedAsyncTimer>(
     *node_handle_private_,
     heartbeat_callback,
