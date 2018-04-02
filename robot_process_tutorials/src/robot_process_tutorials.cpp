@@ -57,15 +57,7 @@ namespace robot_process_tutorials {
       1.0,
       false);
 
-    subscriber_manager.subscribe("/heartbeat", 100, 
-      &RobotProcessTutorials::heartbeatCallback, this);
-
-    boost::function<void (const boost::shared_ptr<robot_process_msgs::State const>&)> callback = 
-    [this](const boost::shared_ptr<robot_process_msgs::State const>& msg) {
-      ROS_INFO_STREAM(getNamespace() << " State: " << unsigned(msg->state));
-    };
-
-    subscriber_manager.subscribe("/heartbeat", 100, callback);
+    subscriber_manager.subscribe("/heartbeat", 1, &RobotProcessTutorials::heartbeatCallback, this);
 
     service_manager.advertiseService("/test", &RobotProcessTutorials::serviceCallback, this);
 

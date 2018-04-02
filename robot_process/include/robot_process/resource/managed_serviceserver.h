@@ -346,7 +346,7 @@ private:
     const ServiceCallback<Args...>& callback) const
   {
     return [this, &callback](Args ... args) -> bool {
-      ROS_DEBUG("wrapped service callback executed!");
+      //ROS_DEBUG("wrapped service callback executed!");
       if (paused_)
       {
         ROS_DEBUG("service is paused!");

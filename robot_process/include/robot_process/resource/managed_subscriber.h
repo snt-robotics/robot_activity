@@ -456,7 +456,7 @@ private:
   MessageCallback<Message> wrapMessageCallback(const MessageCallback<Message>& callback) const
   {
     return [this, &callback](Message message) {
-      ROS_DEBUG("wrapped callback executed!");
+      //ROS_DEBUG("wrapped callback executed!");
       if (!paused_)
         callback(message);
       else
