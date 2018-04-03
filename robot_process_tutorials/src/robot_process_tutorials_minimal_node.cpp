@@ -46,6 +46,8 @@ private:
   {
     ROS_INFO_STREAM(getNamespace() << " Timer Counter: " << counter);
     counter++;
+    float r2 = rand() / (RAND_MAX/0.10);
+    ros::Duration(2.05 - r2).sleep();
   };
 
   void mySubscriberCallback(boost::shared_ptr<robot_process_msgs::State const> msg)
