@@ -1,0 +1,15 @@
+<library path="src">
+  <class name="RobotProcessSupervisor" type="robot_process_supervisor.supervisor.SupervisorPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Supervisor for all nodes implementing RobotProcess superclass
+    </description>
+    <qtgui>
+      <group>
+        <label>Introspection</label>
+      </group>
+      <label>Robot Process Supervisor</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Supervises Robot Process nodes</statustip>
+    </qtgui>
+  </class>
+</library>
