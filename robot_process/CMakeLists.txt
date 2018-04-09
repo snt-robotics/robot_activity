@@ -26,3 +26,16 @@ add_library(robot_process
 )
 add_dependencies(robot_process ${catkin_EXPORTED_TARGETS})
 target_link_libraries(robot_process ${catkin_LIBRARIES})
+
+if(CATKIN_ENABLE_TESTING)
+
+  find_package(rostest REQUIRED)
+
+  add_rostest_gtest(
+    robot_process_tests
+    test/robot_process.test 
+    test/robot_process_tests.cpp)
+
+  target_link_libraries(robot_process_tests robot_process ${catkin_LIBRARIES})
+
+endif()

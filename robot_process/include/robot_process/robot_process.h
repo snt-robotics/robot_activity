@@ -36,7 +36,7 @@ enum class State : std::uint8_t {
 };
 
 /**
- * @brief Overried operator<< for easy State enum printing
+ * @brief Overridden operator<< for easy State enum printing
  * 
  * @param os left-hand std::ostream to be used for outputting
  * @param state State to be output to an std::ostream
@@ -104,6 +104,21 @@ public:
    */
   void runAsync(uint8_t threads = 0);
 
+  /**
+   * @brief Returns the current state 
+   * @return State that the node is in
+   */
+  State getState();
+
+  /**
+   * @brief Returns the full private namespace
+   * @details Returns the full private namespace, 
+   *          meaning name of the actual ROS node together with the name_space
+   *          argument passed during construction.
+   * @return Returned namespace
+   */
+  std::string getNamespace() const;
+
 protected:
 
 
@@ -140,15 +155,6 @@ protected:
   void registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
                              const float& frequency,
                              bool stoppable = true);
-
-  /**
-   * @brief Returns the full private namespace
-   * @details Returns the full private namespace, 
-   *          meaning name of the actual ROS node together with the name_space
-   *          argument passed during construction.
-   * @return Returned namespace
-   */
-  const std::string& getNamespace() const;
 
 private:
   /**

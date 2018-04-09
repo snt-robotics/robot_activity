@@ -12,6 +12,13 @@ RobotProcess::RobotProcess(int argc, char* argv[],
     node_name_(name),
     state_request_callback_queue_()
 {
+  for (int i = 0; i < argc; ++i)
+  {
+    std::cout << argv[i] << std::endl;
+  }
+  std::cout << std::endl;
+
+
   if (ros::isInitialized())
   {
     node_name_ = ros::this_node::getName();
@@ -104,6 +111,11 @@ void RobotProcess::runAsync(uint8_t threads)
   global_callback_queue_spinner_->start();
 }
 
+State RobotProcess::getState()
+{
+  return current_state_;
+}
+
 void RobotProcess::notifyError(uint8_t error_type,
                  const std::string& function,
                  const std::string& description)
@@ -136,9 +148,12 @@ void RobotProcess::registerIsolatedTimer(
     ));
 }
 
-const std::string& RobotProcess::getNamespace() const
+std::string RobotProcess::getNamespace() const
 {
-  return node_handle_private_->getNamespace();
+  if (node_handle_private_)
+    return node_handle_private_->getNamespace();
+  else
+    return std::string();
 }
 
 

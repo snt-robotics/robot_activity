@@ -1,0 +1,34 @@
+<launch>
+  <param name="string"  value="mystring" />
+  <test test-name="robot_process" pkg="robot_process" type="robot_process_tests" />
+</launch>
+
+<!-- <launch>
+
+  <node name="talker_0"
+        pkg="rospy" type="talker.py">
+    <remap from="chatter" to="~output" />
+  </node>
+
+  <node name="talker_1"
+        pkg="rostest" type="just_advertise">
+    <rosparam>
+      msg_name: std_msgs/String
+    </rosparam>
+  </node>
+
+  <test name="robot_process_test"
+        test-name="robot_process_test"
+        pkg="robot_process" type="robot_process_tests">
+    <rosparam>
+      topics:
+        - name: robot_process_test/heartbeat
+          timeout: 10
+          negative: False
+        - name: talker_1/output
+          timeout: 3
+          negative: True  # means it is not published until the timeout
+    </rosparam>
+  </test>
+
+</launch> -->
