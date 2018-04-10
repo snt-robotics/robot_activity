@@ -22,7 +22,7 @@ namespace robot_process {
 /**
  * @brief RobotProcess state enum
  * @details The enum corresponds to the robot_process_msgs::State message
- * 
+ *
  */
 enum class State : std::uint8_t {
   INVALID      = robot_process_msgs::State::INVALID,
@@ -37,7 +37,7 @@ enum class State : std::uint8_t {
 
 /**
  * @brief Overridden operator<< for easy State enum printing
- * 
+ *
  * @param os left-hand std::ostream to be used for outputting
  * @param state State to be output to an std::ostream
  */
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, State state);
 
 /**
  * @brief Class for adding node lifecycle to ROS processes
- * @details 
+ * @details
  */
 class RobotProcess
 {
@@ -58,10 +58,10 @@ public:
 
   /**
    * @brief Constructor
-   * @details UNIX process args are passed in due to ros::init being called 
-   *          inside. name_space allows for running multiple instances of the 
-   *          same class or multiple RobotProcess classes in the same UNIX 
-   *          process without name collisions. name argument is the name 
+   * @details UNIX process args are passed in due to ros::init being called
+   *          inside. name_space allows for running multiple instances of the
+   *          same class or multiple RobotProcess classes in the same UNIX
+   *          process without name collisions. name argument is the name
    *          passed in to ros::init, which is usually remapped in roslaunch.
    *          If name is empty and name is not remapped, then anonymous name will
    *          be created.
@@ -78,9 +78,9 @@ public:
   /**
    * @brief Initializes the RobotProcess
    * @details Creates node handles, starts heartbeat thread, advertises
-   *          state change request services, 
+   *          state change request services,
    *          waits for the supervisor if requested
-   * 
+   *
    * @param autostart If true, transitions immediately to RUNNING state
    * @return Returns a reference to itself for method chaning
    */
@@ -89,8 +89,8 @@ public:
   /**
    * @brief Spins an amount of threads to serve the global callback queue.
    *        The call is blocking.
-   * 
-   * @param threads Number of threads to use, 0 signifies the amount of 
+   *
+   * @param threads Number of threads to use, 0 signifies the amount of
    *                CPU cores available to the OS
    */
   void run(uint8_t threads = 0);
@@ -98,21 +98,21 @@ public:
   /**
    * @brief Spins an amount of threads to serve the global callback queue.
    *        The call is non-blocking.
-   * 
-   * @param threads Number of threads to use, 0 signifies the amount of 
+   *
+   * @param threads Number of threads to use, 0 signifies the amount of
    *                CPU cores available to the OS
    */
   void runAsync(uint8_t threads = 0);
 
   /**
-   * @brief Returns the current state 
+   * @brief Returns the current state
    * @return State that the node is in
    */
   State getState();
 
   /**
    * @brief Returns the full private namespace
-   * @details Returns the full private namespace, 
+   * @details Returns the full private namespace,
    *          meaning name of the actual ROS node together with the name_space
    *          argument passed during construction.
    * @return Returned namespace
@@ -127,8 +127,8 @@ protected:
 
   /**
    * @brief Sends an error message to a global error topic "/error"
-   * @details Ideally the 
-   * 
+   * @details Ideally the
+   *
    * @param error_type Type of error
    * @param function Function, where the error was caused
    * @param description Detailed description of the error
@@ -139,17 +139,17 @@ protected:
 
   /**
    * @brief Register an isolated async timer
-   * @details Registers an isolated async timer, which runs on a separate 
+   * @details Registers an isolated async timer, which runs on a separate
    *          callback queue and is served by a single separate thread. The timer
    *          is managed during the lifecycle and transitioning to PAUSED
    *          state will pause its execution, meaning that the callback
-   *          still executes, but returns immediately. When RobotProcess 
+   *          still executes, but returns immediately. When RobotProcess
    *          transitions to STOPPED state, the timer is stopped completely
    *          and started again during transition from STOPPED to PAUSED
-   * 
+   *
    * @param callback Timer callback to be registered
    * @param frequency Frequency of the timer in Hz
-   * @param stoppable If true, timer cannot be stopped when transitioning to 
+   * @param stoppable If true, timer cannot be stopped when transitioning to
    *                  PAUSED or STOPPED state
    */
   void registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
@@ -158,7 +158,7 @@ protected:
 
 private:
   /**
-   * @brief Vector of shared pointers to isolated timers created by 
+   * @brief Vector of shared pointers to isolated timers created by
    *        register isolated timer
    */
   std::vector<std::shared_ptr<robot_process::IsolatedAsyncTimer>> process_timers_;
@@ -170,7 +170,7 @@ private:
 
   /**
    * @brief Node's namespace, if empty then the private node handle
-   *        resolves to ~ otheerwise private node handle 
+   *        resolves to ~ otheerwise private node handle
    *        resolves to ~node_namespace
    */
   std::string node_namespace_;
@@ -184,7 +184,7 @@ private:
    * @brief Whether to wait for the supervisor during the init function.
    *        Waiting means that there has to be at least one subscriber of the
    *        hearthbeat topic.
-   * 
+   *
    */
   bool wait_for_supervisor_ = true;
 
@@ -293,7 +293,7 @@ private:
    *        Called at the end of transition from STOPPED to PAUSED.
    */
   virtual void onStart() = 0;
-  
+
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from PAUSED to STOPPED.
@@ -318,58 +318,58 @@ private:
   void create();
 
   /**
-   * @brief Called automatically, when transition from UNCONFIGURED to TERMINATED. 
+   * @brief Called automatically, when transition from UNCONFIGURED to TERMINATED.
    */
   void terminate();
 
   /**
-   * @brief Called automatically, when transition from UNCONFIGURED to STOPPED. 
+   * @brief Called automatically, when transition from UNCONFIGURED to STOPPED.
    */
   void configure();
 
   /**
-   * @brief Called automatically, when transition from STOPPED to UNCONFIGURED. 
+   * @brief Called automatically, when transition from STOPPED to UNCONFIGURED.
    */
   void unconfigure();
 
   /**
-   * @brief Called automatically, when transition from STOPPED to PAUSED. 
+   * @brief Called automatically, when transition from STOPPED to PAUSED.
    */
   void start();
 
   /**
-   * @brief Called automatically, when transition from PAUSED to STOPPED. 
+   * @brief Called automatically, when transition from PAUSED to STOPPED.
    */
   void stop();
 
   /**
-   * @brief Called automatically, when transition from PAUSED to RUNNING. 
+   * @brief Called automatically, when transition from PAUSED to RUNNING.
    */
   void resume();
 
   /**
-   * @brief Called automatically, when transition from RUNNING to PAUSED. 
+   * @brief Called automatically, when transition from RUNNING to PAUSED.
    */
   void pause();
 
   /**
-   * @brief Sends a heartbeat message with the current state 
+   * @brief Sends a heartbeat message with the current state
    */
   void notifyState() const;
 
   /**
    * @brief Changes state from current to new. Direct transition must exist.
    *        The appropriate function will be called during transition.
-   * 
+   *
    * @param new_state State to transition to.
    */
   void changeState(const State& new_state);
 
   /**
-   * @brief Transitions to a new state. Path must exists between the current 
+   * @brief Transitions to a new state. Path must exists between the current
    *        and the new state. All appropriate function will be called when
    *        transition to the goal state
-   * 
+   *
    * @param new_state State to transition to.
    * @return Returns true if transition succeeded
    */
@@ -377,10 +377,10 @@ private:
 
   /**
    * @brief Registers a ROS service server listening for state change requests.
-   *        
+   *
    * @param service_name Name of the service
    * @param states States to transition to in order
-   * 
+   *
    * @return Returns the created ros::ServiceServer
    */
   ros::ServiceServer registerStateChangeRequest(
@@ -401,9 +401,9 @@ private:
     [static_cast<uint8_t>(State::Count)];
 
   /**
-   * @brief 2D array of direct state transitions with values being the 
+   * @brief 2D array of direct state transitions with values being the
    *        corresponding functions to be called during that transition.
-   *        First index signifies the state we are transitioning from, 
+   *        First index signifies the state we are transitioning from,
    *        while the second index signifies the state we are transitioning to.
    */
   const static StateTransitions STATE_TRANSITIONS;

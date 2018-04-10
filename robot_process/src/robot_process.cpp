@@ -12,13 +12,6 @@ RobotProcess::RobotProcess(int argc, char* argv[],
     node_name_(name),
     state_request_callback_queue_()
 {
-  for (int i = 0; i < argc; ++i)
-  {
-    std::cout << argv[i] << std::endl;
-  }
-  std::cout << std::endl;
-
-
   if (ros::isInitialized())
   {
     node_name_ = ros::this_node::getName();
@@ -60,6 +53,10 @@ RobotProcess& RobotProcess::init(bool autostart)
   }
 
   notifyState();
+
+  ros::param::param<bool>("~autostart_after_reconfigure", autostart_after_reconfigure_, false);
+  ROS_INFO_STREAM("autostart_after_reconfigure = "
+    << std::boolalpha << autostart_after_reconfigure_);
 
   terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED});
   reconfigure_server_ = registerStateChangeRequest("reconfigure", {
@@ -167,8 +164,8 @@ void RobotProcess::terminate()
 {
   PRINT_FUNC_CALL("terminate");
   onTerminate();
-  ros::Rate(2).sleep();
-  ros::shutdown();
+  // ros::Rate(2).sleep();
+  // ros::shutdown();
 }
 
 void RobotProcess::configure()
@@ -306,8 +303,6 @@ void RobotProcess::changeState(const State& new_state)
   current_state_ = new_state;
 
   boost::bind(callback, this)();
-  //cb();
-  //(this->*callback)();
   notifyState();
 }
 
