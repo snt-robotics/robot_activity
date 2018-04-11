@@ -8,7 +8,8 @@
 #include <std_srvs/Empty.h>
 
 
-namespace robot_process_tutorials {
+namespace robot_process_tutorials
+{
 
 class RobotProcessTutorials : public robot_process::ManagedRobotProcess
 {

@@ -4,17 +4,24 @@ project(robot_process)
 add_compile_options(-std=c++11)
 add_compile_options(-Wall)
 
+
 find_package(catkin REQUIRED COMPONENTS
+  roslint
   roscpp
   std_srvs
   robot_process_msgs
 )
+
+
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES robot_process
   CATKIN_DEPENDS roscpp std_srvs robot_process_msgs
 )
+
+set(ROSLINT_CPP_OPTS "--filter=+,-build/c++11,-runtime/references")
+roslint_cpp()
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 

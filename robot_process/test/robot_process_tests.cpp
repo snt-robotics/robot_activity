@@ -1,3 +1,39 @@
+/*********************************************************************
+ *
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2018, University of Luxembourg
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of University of Luxembourg nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author: Maciej Zurad
+ *********************************************************************/
 #include <gtest/gtest.h>
 
 #include <ros/ros.h>
@@ -6,12 +42,18 @@
 
 #include <std_srvs/Empty.h>
 
-using namespace robot_process;
+#include <vector>
+#include <string>
 
-class AnyRobotProcess : public RobotProcess {
+using robot_process::RobotProcess;
+using robot_process::State;
+using robot_process::IsolatedAsyncTimer;
+
+class AnyRobotProcess : public RobotProcess
+{
 public:
   using RobotProcess::RobotProcess;
-  ~AnyRobotProcess() {};
+  ~AnyRobotProcess() {}
 private:
   void onCreate() override {};
   void onTerminate() override {};
@@ -47,7 +89,7 @@ TEST(RobotProcessTests, RemappedNameInitializedStateAndNamespace)
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   EXPECT_EQ(test.getNamespace(), std::string(""));
 
@@ -72,7 +114,7 @@ TEST(RobotProcessTests, InitializedNonWaitingStateAndNamespace)
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   EXPECT_EQ(test.getNamespace(), std::string(""));
   test.init();
@@ -91,7 +133,7 @@ TEST(RobotProcessTests, AutostartNonWaitingStateAndNamespace)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   EXPECT_EQ(test.getNamespace(), std::string(""));
   test.init();
@@ -110,7 +152,7 @@ TEST(RobotProcessTests, StartStopServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", false);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -138,7 +180,7 @@ TEST(RobotProcessTests, PauseResumeServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -166,7 +208,7 @@ TEST(RobotProcessTests, RestartServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -207,7 +249,7 @@ TEST(RobotProcessTests, ReconfigureServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -249,7 +291,7 @@ TEST(RobotProcessTests, NoAutostartAfterReconfigureServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -272,7 +314,7 @@ TEST(RobotProcessTests, TerminateServiceState)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", false);
 
-  AnyRobotProcess test(argc, (char**)argv);
+  AnyRobotProcess test(argc, const_cast<char**>(argv));
   EXPECT_EQ(test.getState(), State::LAUNCHING);
   test.init();
   test.runAsync();
@@ -295,7 +337,7 @@ TEST(RobotProcessTests, IsolatedAsyncTimer)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  AnyRobotProcessWithTimer test(argc, (char**)argv);
+  AnyRobotProcessWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
   ros::Duration(2.1).sleep();
   EXPECT_EQ(test.context, 2);
@@ -317,7 +359,7 @@ TEST(RobotProcessTests, StoppableIsolatedAsyncTimer)
   auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/pause");
   std_srvs::Empty pause_empty, start_empty;
 
-  AnyRobotProcessWithTimer test(argc, (char**)argv);
+  AnyRobotProcessWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
 
   ros::Duration(1.1).sleep();
@@ -328,7 +370,6 @@ TEST(RobotProcessTests, StoppableIsolatedAsyncTimer)
   EXPECT_EQ(start.call(start_empty), true);
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 2);
-
 }
 
 TEST(RobotProcessTests, NonStoppableIsolatedAsyncTimer)
@@ -346,7 +387,7 @@ TEST(RobotProcessTests, NonStoppableIsolatedAsyncTimer)
   auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/stop");
   std_srvs::Empty stop_empty, start_empty;
 
-  AnyRobotProcessWithTimer test(argc, (char**)argv);
+  AnyRobotProcessWithTimer test(argc, const_cast<char**>(argv));
   test.stoppable = false;
   test.init().runAsync();
 
@@ -358,10 +399,10 @@ TEST(RobotProcessTests, NonStoppableIsolatedAsyncTimer)
   EXPECT_EQ(start.call(start_empty), true);
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 3);
-
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

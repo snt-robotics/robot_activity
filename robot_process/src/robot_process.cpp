@@ -1,9 +1,49 @@
+/*********************************************************************
+ *
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2018, University of Luxembourg
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of University of Luxembourg nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author: Maciej Zurad
+ *********************************************************************/
 #include <robot_process/robot_process.h>
+
+#include <string>
+#include <vector>
 
 #define PRINT_FUNC_CALL(state) \
   ROS_DEBUG_STREAM(#state << "() method called")
 
-namespace robot_process {
+namespace robot_process
+{
 
 RobotProcess::RobotProcess(int argc, char* argv[],
                            const std::string& name_space,
@@ -34,13 +74,12 @@ RobotProcess::~RobotProcess()
 
 RobotProcess& RobotProcess::init(bool autostart)
 {
-
   node_handle_ = ros::NodeHandlePtr(new ros::NodeHandle(node_namespace_));
   node_handle_private_ = ros::NodeHandlePtr(new ros::NodeHandle("~" + node_namespace_));
 
   ros::param::param<bool>("~wait_for_supervisor", wait_for_supervisor_, true);
   ROS_INFO_STREAM("wait_for_supervisor = "
-    << std::boolalpha << wait_for_supervisor_);
+                  << std::boolalpha << wait_for_supervisor_);
 
   process_state_pub_ = node_handle_private_->advertise<robot_process_msgs::State>("/heartbeat", 0, true);
   process_error_pub_ = node_handle_private_->advertise<robot_process_msgs::Error>("/error", 0, true);
@@ -56,29 +95,33 @@ RobotProcess& RobotProcess::init(bool autostart)
 
   ros::param::param<bool>("~autostart_after_reconfigure", autostart_after_reconfigure_, false);
   ROS_INFO_STREAM("autostart_after_reconfigure = "
-    << std::boolalpha << autostart_after_reconfigure_);
+                  << std::boolalpha << autostart_after_reconfigure_);
 
-  terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED});
-  reconfigure_server_ = registerStateChangeRequest("reconfigure", {
-    State::UNCONFIGURED,
-    autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
-  });
+  terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED}); // NOLINT
+  reconfigure_server_ = registerStateChangeRequest("reconfigure",
+    {
+      State::UNCONFIGURED,
+      autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
+    }); // NOLINT
 
-  restart_server_ = registerStateChangeRequest("restart", {State::STOPPED, State::RUNNING});
-  start_server_   = registerStateChangeRequest("start", {State::RUNNING});
-  stop_server_    = registerStateChangeRequest("stop",  {State::STOPPED});
-  pause_server_   = registerStateChangeRequest("pause", {State::PAUSED});
+  restart_server_ = registerStateChangeRequest("restart", {State::STOPPED, State::RUNNING}); // NOLINT
+  start_server_   = registerStateChangeRequest("start", {State::RUNNING}); // NOLINT
+  stop_server_    = registerStateChangeRequest("stop",  {State::STOPPED}); // NOLINT
+  pause_server_   = registerStateChangeRequest("pause", {State::PAUSED}); // NOLINT
 
   float heartbeat_rate;
   ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);
   ROS_INFO("heartbeat_rate = %.3f [Hz]", heartbeat_rate);
 
-  IsolatedAsyncTimer::LambdaCallback heartbeat_callback = [this]() { notifyState(); };
+  IsolatedAsyncTimer::LambdaCallback heartbeat_callback = [this]()
+  {
+    notifyState();
+  };
   heartbeat_timer_ = std::make_shared<IsolatedAsyncTimer>(
-    *node_handle_private_,
-    heartbeat_callback,
-    heartbeat_rate,
-    false);
+                       *node_handle_private_,
+                       heartbeat_callback,
+                       heartbeat_rate,
+                       false);
 
   ros::param::param<bool>("~autostart", autostart_, false);
 
@@ -114,12 +157,12 @@ State RobotProcess::getState()
 }
 
 void RobotProcess::notifyError(uint8_t error_type,
-                 const std::string& function,
-                 const std::string& description)
+                               const std::string& function,
+                               const std::string& description)
 {
   ROS_DEBUG_STREAM("Publishing error msg with code: "
-    << error_type << " function: " << function
-    << " description: " << description);
+                   << error_type << " function: " << function
+                   << " description: " << description);
   robot_process_msgs::Error error_msg;
   error_msg.header.stamp = ros::Time::now();
   error_msg.node_name = getNamespace();
@@ -141,8 +184,7 @@ void RobotProcess::registerIsolatedTimer(
       frequency,
       stoppable,
       false,
-      false
-    ));
+      false));
 }
 
 std::string RobotProcess::getNamespace() const
@@ -183,7 +225,7 @@ void RobotProcess::unconfigure()
 void RobotProcess::start()
 {
   PRINT_FUNC_CALL("start");
-  for(const auto& timer : process_timers_)
+  for (const auto & timer : process_timers_)
   {
     ROS_DEBUG("Starting timer");
     timer->start();
@@ -194,7 +236,7 @@ void RobotProcess::start()
 void RobotProcess::stop()
 {
   PRINT_FUNC_CALL("stop");
-  for(const auto& timer : process_timers_)
+  for (const auto & timer : process_timers_)
   {
     ROS_DEBUG("Stopping timer");
     timer->stop();
@@ -205,7 +247,7 @@ void RobotProcess::stop()
 void RobotProcess::resume()
 {
   PRINT_FUNC_CALL("resume");
-  for(const auto& timer : process_timers_)
+  for (const auto & timer : process_timers_)
   {
     ROS_DEBUG("Resuming timer");
     timer->resume();
@@ -216,7 +258,7 @@ void RobotProcess::resume()
 void RobotProcess::pause()
 {
   PRINT_FUNC_CALL("pause");
-  for(const auto& timer : process_timers_)
+  for (const auto & timer : process_timers_)
   {
     ROS_DEBUG("Pausing timer");
     timer->pause();
@@ -230,11 +272,11 @@ ros::ServiceServer RobotProcess::registerStateChangeRequest(
 {
   ROS_DEBUG_STREAM(
     "Registering state transition request for state " << service_name);
-  using namespace std_srvs;
-  EmptyServiceCallback callback = [=](Empty::Request& req, Empty::Response& res)
+  using std_srvs::Empty;
+  EmptyServiceCallback callback = [ = ](Empty::Request & req, Empty::Response & res)
   {
     bool success = true;
-    for (const auto& s : states)
+    for (const auto & s : states)
     {
       success = success && transitionToState(s);
     }
@@ -242,11 +284,10 @@ ros::ServiceServer RobotProcess::registerStateChangeRequest(
   };
 
   auto options = ros::AdvertiseServiceOptions::create<Empty>(
-    service_name,
-    callback,
-    ros::VoidConstPtr(),
-    &state_request_callback_queue_
-  );
+                   service_name,
+                   callback,
+                   ros::VoidConstPtr(),
+                   &state_request_callback_queue_);
 
   return node_handle_private_->advertiseService(options);
 }
@@ -265,7 +306,7 @@ bool RobotProcess::transitionToState(const State& goal_state)
 {
   if (current_state_ == goal_state)
   {
-    ROS_WARN_STREAM( "Node is already at state " << goal_state );
+    ROS_WARN_STREAM("Node is already at state " << goal_state);
     return false;
   }
 
@@ -276,8 +317,8 @@ bool RobotProcess::transitionToState(const State& goal_state)
     State next_state = STATE_TRANSITIONS_PATHS[from_state][to_state];
     if (next_state == State::INVALID)
     {
-      ROS_WARN_STREAM( "There is no transition path from [" << current_state_
-        << "] to [" << goal_state << "]" );
+      ROS_WARN_STREAM("There is no transition path from [" << current_state_
+                      << "] to [" << goal_state << "]");
       return false;
     }
     changeState(next_state);
@@ -308,29 +349,51 @@ void RobotProcess::changeState(const State& new_state)
 
 std::ostream& operator<<(std::ostream& os, State state)
 {
-  switch(state)
+  switch (state)
   {
-    case State::INVALID      : os << "INVALID";      break;
-    case State::LAUNCHING    : os << "LAUNCHING";    break;
-    case State::UNCONFIGURED : os << "UNCONFIGURED"; break;
-    case State::STOPPED      : os << "STOPPED";      break;
-    case State::PAUSED       : os << "PAUSED";       break;
-    case State::RUNNING      : os << "RUNNING";      break;
-    case State::TERMINATED   : os << "TERMINATED";   break;
-    default                  : os.setstate(std::ios_base::failbit);
+  case State::INVALID      :
+    os << "INVALID";
+    break;
+  case State::LAUNCHING    :
+    os << "LAUNCHING";
+    break;
+  case State::UNCONFIGURED :
+    os << "UNCONFIGURED";
+    break;
+  case State::STOPPED      :
+    os << "STOPPED";
+    break;
+  case State::PAUSED       :
+    os << "PAUSED";
+    break;
+  case State::RUNNING      :
+    os << "RUNNING";
+    break;
+  case State::TERMINATED   :
+    os << "TERMINATED";
+    break;
+  default                  :
+    os.setstate(std::ios_base::failbit);
   }
   return os;
 }
 
 const RobotProcess::StateTransitions RobotProcess::STATE_TRANSITIONS =
 {
-  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, // State::INVALID
-  {nullptr, nullptr, &RobotProcess::create, nullptr, nullptr, nullptr, nullptr}, // State::LAUNCHING
-  {nullptr, nullptr, nullptr, &RobotProcess::configure, nullptr, nullptr, &RobotProcess::terminate}, // State::UNCONFIGURED
-  {nullptr, nullptr, &RobotProcess::unconfigure, nullptr, &RobotProcess::start, nullptr, nullptr}, // State::STOPPED
-  {nullptr, nullptr, nullptr, &RobotProcess::stop, nullptr, &RobotProcess::resume, nullptr}, // State::PAUSED
-  {nullptr, nullptr, nullptr, nullptr, &RobotProcess::pause, nullptr, nullptr}, // State::RUNNING
-  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr} // State::TERMINATED
+  /* Valid transitions for State::INVALID */
+  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+  /* Valid transitions for  State::LAUNCHING */
+  {nullptr, nullptr, &RobotProcess::create, nullptr, nullptr, nullptr, nullptr},
+  /* Valid transitions for State::UNCONFIGURED */
+  {nullptr, nullptr, nullptr, &RobotProcess::configure, nullptr, nullptr, &RobotProcess::terminate},
+  /* Valid transitions for State::STOPPED */
+  {nullptr, nullptr, &RobotProcess::unconfigure, nullptr, &RobotProcess::start, nullptr, nullptr},
+  /* Valid transitions for State::PAUSED */
+  {nullptr, nullptr, nullptr, &RobotProcess::stop, nullptr, &RobotProcess::resume, nullptr},
+  /* Valid transitions for State::RUNNING */
+  {nullptr, nullptr, nullptr, nullptr, &RobotProcess::pause, nullptr, nullptr},
+  /* Valid transitions for State::TERMINATED */
+  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}
 };
 
 
@@ -338,45 +401,46 @@ const RobotProcess::StateTransitionPaths RobotProcess::STATE_TRANSITIONS_PATHS =
 {
   {
     /* State::INVALID to other states */
-    State::INVALID, State::INVALID, State::INVALID, State::INVALID,
-    State::INVALID, State::INVALID, State::INVALID
-  },
+    State::INVALID, State::INVALID, State::INVALID,
+    State::INVALID, State::INVALID, State::INVALID,
+    State::INVALID
+  }, // NOLINT
   {
     /* State::LAUNCHING to other states */
     State::INVALID, State::LAUNCHING, State::UNCONFIGURED,
     State::UNCONFIGURED, State::UNCONFIGURED, State::UNCONFIGURED,
     State::UNCONFIGURED
-  },
+  }, // NOLINT
   {
     /* State::UNCONFIGURED to other states */
     State::INVALID, State::INVALID, State::UNCONFIGURED,
     State::STOPPED, State::STOPPED, State::STOPPED,
     State::TERMINATED
-  },
+  }, // NOLINT
   {
     /* State::STOPPED to other states */
     State::INVALID, State::INVALID, State::UNCONFIGURED,
     State::STOPPED, State::PAUSED, State::PAUSED,
     State::UNCONFIGURED
-  },
+  }, // NOLINT
   {
     /* State::PAUSED to other states */
     State::INVALID, State::INVALID, State::STOPPED,
     State::STOPPED, State::PAUSED, State::RUNNING,
     State::STOPPED
-  },
+  }, // NOLINT
   {
     /* State::RUNNING to other states */
     State::INVALID, State::INVALID, State::PAUSED,
     State::PAUSED, State::PAUSED, State::PAUSED,
     State::PAUSED
-  },
+  }, // NOLINT
   {
     /* State::TERMINATED to other states */
     State::INVALID, State::INVALID, State::INVALID,
     State::INVALID, State::INVALID, State::INVALID,
     State::INVALID
-  },
+  }
 };
 
-} // namespace robot_process
+}  // namespace robot_process

@@ -7,7 +7,8 @@
 #include <robot_process_msgs/State.h>
 #include <std_srvs/Empty.h>
 
-namespace robot_process_tutorials {
+namespace robot_process_tutorials
+{
 
 class MyRobotProcess : public robot_process::ManagedRobotProcess
 {
@@ -15,21 +16,21 @@ public:
   /* Important to inherit the constructor */
   using ManagedRobotProcess::ManagedRobotProcess;
   ~MyRobotProcess()
-  { 
+  {
     ROS_DEBUG_STREAM(getNamespace() << " destructed!");
   }
 
 private:
   void onManagedCreate() override
   {
-    subscriber_manager.subscribe("/heartbeat", 1, 
-      &MyRobotProcess::mySubscriberCallback, this);
+    subscriber_manager.subscribe("/heartbeat", 1,
+                                 &MyRobotProcess::mySubscriberCallback, this);
 
-    service_manager.advertiseService("test", 
-      &MyRobotProcess::myServiceCallback, this);
+    service_manager.advertiseService("test",
+                                     &MyRobotProcess::myServiceCallback, this);
 
     registerIsolatedTimer(std::bind(&MyRobotProcess::myTimerCallback, this),
-      0.5, true);
+                          0.5, true);
   };
   void onManagedTerminate() override {};
 
@@ -46,18 +47,18 @@ private:
   {
     ROS_INFO_STREAM(getNamespace() << " Timer Counter: " << counter);
     counter++;
-    float r2 = rand() / (RAND_MAX/0.10);
+    float r2 = rand() / (RAND_MAX / 0.10);
     ros::Duration(2.05 - r2).sleep();
   };
 
   void mySubscriberCallback(boost::shared_ptr<robot_process_msgs::State const> msg)
   {
-    ROS_INFO_STREAM(getNamespace() << " " 
-      << msg->node_name << " is in " << unsigned(msg->state));
+    ROS_INFO_STREAM(getNamespace() << " "
+                    << msg->node_name << " is in " << unsigned(msg->state));
   };
 
   bool myServiceCallback(
-    std_srvs::Empty::Request& request, 
+    std_srvs::Empty::Request& request,
     std_srvs::Empty::Response& response)
   {
     ROS_INFO_STREAM(getNamespace() << " Service called, returning true");
@@ -71,7 +72,8 @@ private:
 } // namespace robot_process_tutorials
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
   using namespace robot_process_tutorials;
 
