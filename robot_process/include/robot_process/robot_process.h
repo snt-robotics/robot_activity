@@ -195,32 +195,6 @@ protected:
                              bool stoppable = true);
 
 private:
-  typedef void (RobotProcess::*MemberLambdaCallback)();
-
-  typedef boost::function < bool(
-    std_srvs::Empty::Request& req,
-    std_srvs::Empty::Response& res) > EmptyServiceCallback;
-  typedef MemberLambdaCallback StateTransitions
-  [static_cast<uint8_t>(State::Count)]
-  [static_cast<uint8_t>(State::Count)];
-
-  typedef State StateTransitionPaths
-  [static_cast<uint8_t>(State::Count)]
-  [static_cast<uint8_t>(State::Count)];
-
-  /**
-   * @brief 2D array of direct state transitions with values being the
-   *        corresponding functions to be called during that transition.
-   *        First index signifies the state we are transitioning from,
-   *        while the second index signifies the state we are transitioning to.
-   */
-  const static StateTransitions STATE_TRANSITIONS;
-
-  /**
-   * @brief 2D array of paths between states.
-   */
-  const static StateTransitionPaths STATE_TRANSITIONS_PATHS;
-
   /**
    * @brief Vector of shared pointers to isolated timers created by
    *        register isolated timer
@@ -450,8 +424,34 @@ private:
   ros::ServiceServer registerStateChangeRequest(
     const std::string& service_name,
     const std::vector<State>& states);
+
+  typedef void (RobotProcess::*MemberLambdaCallback)();
+
+  typedef boost::function < bool(
+    std_srvs::Empty::Request& req,
+    std_srvs::Empty::Response& res) > EmptyServiceCallback;
+  typedef MemberLambdaCallback StateTransitions
+  [static_cast<uint8_t>(State::Count)]
+  [static_cast<uint8_t>(State::Count)];
+
+  typedef State StateTransitionPaths
+  [static_cast<uint8_t>(State::Count)]
+  [static_cast<uint8_t>(State::Count)];
+
+  /**
+   * @brief 2D array of direct state transitions with values being the
+   *        corresponding functions to be called during that transition.
+   *        First index signifies the state we are transitioning from,
+   *        while the second index signifies the state we are transitioning to.
+   */
+  const static StateTransitions STATE_TRANSITIONS;
+
+  /**
+   * @brief 2D array of paths between states.
+   */
+  const static StateTransitionPaths STATE_TRANSITIONS_PATHS;
 };
 
 }  // namespace robot_process
 
-#endif  // ROBOT_PROCESS_ROBOT_PROCESS_H
+#endif // ROBOT_PROCESS_ROBOT_PROCESS_H

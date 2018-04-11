@@ -4,7 +4,6 @@ project(robot_process)
 add_compile_options(-std=c++11)
 add_compile_options(-Wall)
 
-
 find_package(catkin REQUIRED COMPONENTS
   roslint
   roscpp
@@ -12,15 +11,17 @@ find_package(catkin REQUIRED COMPONENTS
   robot_process_msgs
 )
 
-
-
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES robot_process
   CATKIN_DEPENDS roscpp std_srvs robot_process_msgs
 )
 
-set(ROSLINT_CPP_OPTS "--filter=+,-build/c++11,-runtime/references")
+###########
+## Build ##
+###########
+
+set(ROSLINT_CPP_OPTS "--filter=+,-build/c++11,-runtime/references,-build/storage_class")
 roslint_cpp()
 
 include_directories(include ${catkin_INCLUDE_DIRS})
@@ -33,6 +34,25 @@ add_library(robot_process
 )
 add_dependencies(robot_process ${catkin_EXPORTED_TARGETS})
 target_link_libraries(robot_process ${catkin_LIBRARIES})
+
+#############
+## Install ##
+#############
+
+install(TARGETS robot_process
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+#############
+## Testing ##
+#############
 
 if(CATKIN_ENABLE_TESTING)
 
@@ -48,5 +68,7 @@ if(CATKIN_ENABLE_TESTING)
   add_dependencies(tests any_robot_process)
   target_link_libraries(any_robot_process robot_process ${catkin_LIBRARIES})
   add_rostest(test/heartbeat.test)
+
+  roslint_add_test()
 
 endif()
