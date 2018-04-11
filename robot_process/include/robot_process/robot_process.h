@@ -1,11 +1,47 @@
+/*********************************************************************
+ *
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2018, University of Luxembourg
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of University of Luxembourg nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author: Maciej Zurad
+ *********************************************************************/
 /*!
    \file robot_process.h
    \brief RobotProcess class implements ROS node lifecycle
    \author Maciej Marcin ZURAD
    \date 01/03/2018
 */
-#ifndef ROBOT_PROCESS_H
-#define ROBOT_PROCESS_H
+#ifndef ROBOT_PROCESS_ROBOT_PROCESS_H
+#define ROBOT_PROCESS_ROBOT_PROCESS_H
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -17,14 +53,19 @@
 
 #include <robot_process/isolated_async_timer.h>
 
-namespace robot_process {
+#include <string>
+#include <vector>
+
+namespace robot_process
+{
 
 /**
  * @brief RobotProcess state enum
  * @details The enum corresponds to the robot_process_msgs::State message
  *
  */
-enum class State : std::uint8_t {
+enum class State : std::uint8_t
+{
   INVALID      = robot_process_msgs::State::INVALID,
   LAUNCHING    = robot_process_msgs::State::LAUNCHING,
   UNCONFIGURED = robot_process_msgs::State::UNCONFIGURED,
@@ -50,7 +91,6 @@ std::ostream& operator<<(std::ostream& os, State state);
 class RobotProcess
 {
 public:
-
   /**
    * @brief Default constructor is deleted
    */
@@ -67,8 +107,8 @@ public:
    *          be created.
    */
   RobotProcess(int argc, char* argv[],
-    const std::string& name_space = {},
-    const std::string& name = {});
+               const std::string& name_space = std::string(),
+               const std::string& name = std::string());
 
   /**
    * @brief Virtual destructor
@@ -120,8 +160,6 @@ public:
   std::string getNamespace() const;
 
 protected:
-
-
   ros::NodeHandlePtr node_handle_;
   ros::NodeHandlePtr node_handle_private_;
 
@@ -389,16 +427,16 @@ private:
 
   typedef void (RobotProcess::*MemberLambdaCallback)();
 
-  typedef boost::function<bool(
+  typedef boost::function < bool(
     std_srvs::Empty::Request& req,
-    std_srvs::Empty::Response& res)> EmptyServiceCallback;
+    std_srvs::Empty::Response& res) > EmptyServiceCallback;
   typedef MemberLambdaCallback StateTransitions
-    [static_cast<uint8_t>(State::Count)]
-    [static_cast<uint8_t>(State::Count)];
+  [static_cast<uint8_t>(State::Count)]
+  [static_cast<uint8_t>(State::Count)];
 
   typedef State StateTransitionPaths
-    [static_cast<uint8_t>(State::Count)]
-    [static_cast<uint8_t>(State::Count)];
+  [static_cast<uint8_t>(State::Count)]
+  [static_cast<uint8_t>(State::Count)];
 
   /**
    * @brief 2D array of direct state transitions with values being the
@@ -412,9 +450,8 @@ private:
    * @brief 2D array of paths between states.
    */
   const static StateTransitionPaths STATE_TRANSITIONS_PATHS;
-
 };
 
-} // namespace robot_process
+}  // namespace robot_process
 
-#endif
+#endif // ROBOT_PROCESS_ROBOT_PROCESS_H
