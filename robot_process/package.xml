@@ -1,26 +1,28 @@
-<?xml version="1.0"?>
-<package>
+<package format="2">
   <name>robot_process</name>
   <version>0.1.0</version>
-  <description>The robot_process package implements ROS node lifecycle</description>
+  <description>
+    The robot_process package implements ROS node lifecycle
+  </description>
 
+  <author email="maciej.zurad@gmail.com">Maciej ZURAD</author>
   <maintainer email="maciej.zurad@gmail.com">Maciej ZURAD</maintainer>
 
   <license>BSD</license>
 
-  <author email="maciej.zurad@gmail.com">Maciej ZURAD</author>
+  <url>http://www.ros.org/wiki/robot_process</url>
+  <url type="bugtracker">https://github.com/snt-robotics/robot_process/issues</url>
+  <url type="repository">https://github.com/snt-robotics/robot_process</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_depend>robot_process_msgs</build_depend>
+  <depend>roscpp</depend>
+  <depend>std_srvs</depend>
+  <depend>robot_process_msgs</depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>robot_process_msgs</run_depend>
+  <build_depend>roslint</build_depend>
+  <test_depend>rostest</test_depend>
 
   <export>
   </export>
-
 </package>

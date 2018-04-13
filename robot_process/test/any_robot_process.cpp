@@ -34,45 +34,38 @@
  *
  * Author: Maciej Zurad
  *********************************************************************/
-#ifndef ROBOT_PROCESS_TUTORIALS_ROBOT_PROCESS_TUTORIALS_H
-#define ROBOT_PROCESS_TUTORIALS_ROBOT_PROCESS_TUTORIALS_H
+#include <gtest/gtest.h>
 
 #include <ros/ros.h>
-#include <robot_process/managed_robot_process.h>
-
+#include <robot_process/robot_process.h>
 #include <robot_process_msgs/State.h>
+
 #include <std_srvs/Empty.h>
 
-namespace robot_process_tutorials
-{
+using robot_process::RobotProcess;
 
-class RobotProcessTutorials : public robot_process::ManagedRobotProcess
+class AnyRobotProcess : public RobotProcess
 {
 public:
-  using ManagedRobotProcess::ManagedRobotProcess;
-  ~RobotProcessTutorials() { }
-
-  void onManagedCreate() override;
-  void onManagedTerminate() override;
-
-  void onManagedConfigure() override;
-  void onManagedUnconfigure() override;
-
-  void onManagedStart() override;
-  void onManagedStop() override;
-
-  void onManagedResume() override;
-  void onManagedPause() override;
-
+  using RobotProcess::RobotProcess;
+  ~AnyRobotProcess() {}
 private:
-  void timerCallback();
-  void heartbeatCallback(boost::shared_ptr<robot_process_msgs::State const> msg);
+  void onCreate() override {};
+  void onTerminate() override {};
 
-  bool serviceCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+  void onConfigure() override {};
+  void onUnconfigure() override {};
 
-  int counter = 0;
+  void onStart() override {};
+  void onStop() override {};
+
+  void onResume() override {};
+  void onPause() override {};
 };
 
-}  // namespace robot_process_tutorials
-
-#endif  // ROBOT_PROCESS_TUTORIALS_ROBOT_PROCESS_TUTORIALS_H
+int main(int argc, char **argv)
+{
+  AnyRobotProcess erb(argc, argv);
+  erb.init().run();
+  return 0;
+}
