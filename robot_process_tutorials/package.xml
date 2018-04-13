@@ -4,17 +4,14 @@
   <version>0.1.0</version>
   <description>The robot_process_tutorials package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="ros@todo.todo">ros</maintainer>
+  <author email="maciej.zurad@gmail.com">Maciej ZURAD</author>
+  <maintainer email="maciej.zurad@gmail.com">Maciej ZURAD</maintainer>
 
-
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>BSD</license>
 
+  <url>http://www.ros.org/wiki/robot_process_tutorials</url>
+  <url type="bugtracker">https://github.com/snt-robotics/robot_process/issues</url>
+  <url type="repository">https://github.com/snt-robotics/robot_process</url>
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>robot_process</build_depend>
@@ -23,10 +20,7 @@
   <run_depend>robot_process</run_depend>
   <run_depend>roscpp</run_depend>
 
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
   </export>
+
 </package>

@@ -454,4 +454,4 @@ private:
 
 }  // namespace robot_process
 
-#endif // ROBOT_PROCESS_ROBOT_PROCESS_H
+#endif  // ROBOT_PROCESS_ROBOT_PROCESS_H

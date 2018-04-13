@@ -214,9 +214,9 @@ TEST(RobotProcessTests, RestartServiceState)
   test.runAsync();
   EXPECT_EQ(test.getState(), State::RUNNING);
 
-
   int counter = 0;
-  std::vector<State> expected_transitions = {
+  std::vector<State> expected_transitions
+  {
     State::RUNNING,
     State::PAUSED,
     State::STOPPED,
