@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<package>
+<package format="2">
   <name>robot_process_tutorials</name>
   <version>0.1.0</version>
   <description>The robot_process_tutorials package</description>
@@ -12,13 +11,14 @@
   <url>http://www.ros.org/wiki/robot_process_tutorials</url>
   <url type="bugtracker">https://github.com/snt-robotics/robot_process/issues</url>
   <url type="repository">https://github.com/snt-robotics/robot_process</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>robot_process</build_depend>
-  <build_depend>roscpp</build_depend>
+  <build_depend>roslint</build_depend>
 
-  <run_depend>robot_process</run_depend>
-  <run_depend>roscpp</run_depend>
+  <depend>roscpp</depend>
+  <depend>std_srvs</depend>
+  <depend>robot_process</depend>
 
   <export>
   </export>

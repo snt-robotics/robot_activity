@@ -62,10 +62,11 @@ if(CATKIN_ENABLE_TESTING)
     robot_process_tests
     test/robot_process.test
     test/robot_process_tests.cpp)
+  add_dependencies(robot_process_tests ${catkin_EXPORTED_TARGETS})
   target_link_libraries(robot_process_tests robot_process ${catkin_LIBRARIES})
 
   add_executable(any_robot_process EXCLUDE_FROM_ALL test/any_robot_process.cpp)
-  add_dependencies(tests any_robot_process)
+  add_dependencies(any_robot_process ${catkin_EXPORTED_TARGETS})
   target_link_libraries(any_robot_process robot_process ${catkin_LIBRARIES})
   add_rostest(test/heartbeat.test)
 

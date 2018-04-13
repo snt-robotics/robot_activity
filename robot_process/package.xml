@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<package>
+<package format="2">
   <name>robot_process</name>
   <version>0.1.0</version>
   <description>
@@ -17,19 +16,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>roscpp</depend>
+  <depend>std_srvs</depend>
+  <depend>robot_process_msgs</depend>
+
   <build_depend>roslint</build_depend>
-
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_srvs</build_depend>
-  <build_depend>robot_process_msgs</build_depend>
-
-  <run_depend>roscpp</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>robot_process_msgs</run_depend>
-
   <test_depend>rostest</test_depend>
 
   <export>
   </export>
-
 </package>
