@@ -4,6 +4,9 @@ Changelog for package robot_activity
 
 Forthcoming
 -----------
+* package renamed to robot_activity
+* Contributors: Maciej Zurad
+
 * initial beta release
 * RobotProcess working with heartbeat and state services
 * ManagedRobotProcess working with managed subscriber and services
