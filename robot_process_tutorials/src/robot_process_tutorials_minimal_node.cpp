@@ -80,7 +80,8 @@ private:
   {
     ROS_INFO_STREAM(getNamespace() << " Timer Counter: " << counter);
     counter++;
-    float r2 = rand_r() / (RAND_MAX / 0.10);
+    unsigned int seed = time(NULL);
+    float r2 = rand_r(&seed) / (RAND_MAX / 0.10);
     ros::Duration(2.05 - r2).sleep();
   };
 
@@ -97,6 +98,8 @@ private:
     ROS_INFO_STREAM(getNamespace() << " Service called, returning true");
     return true;
   };
+
+  int counter = 0;
 };
 
 }  // namespace robot_process_tutorials
