@@ -1,3 +1,0 @@
-<launch>
-  <test test-name="robot_process_tests" pkg="robot_process" type="robot_process_tests" />
-</launch>
