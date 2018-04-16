@@ -42,6 +42,9 @@
 
 #include <std_srvs/Empty.h>
 
+namespace
+{
+
 using robot_activity::RobotActivity;
 
 class AnyRobotActivity : public RobotActivity
@@ -62,6 +65,8 @@ private:
   void onResume() override {};
   void onPause() override {};
 };
+
+}  // anonymous namespace
 
 int main(int argc, char **argv)
 {

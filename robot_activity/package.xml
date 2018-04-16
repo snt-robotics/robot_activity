@@ -24,5 +24,6 @@
   <test_depend>rostest</test_depend>
 
   <export>
+    <rosdoc config="rosdoc.yaml" />
   </export>
 </package>
