@@ -1,7 +1,5 @@
-# robot_activity
+# robot_activity [![Build Status](https://travis-ci.org/snt-robotics/robot_activity.svg?branch=master)](https://travis-ci.org/snt-robotics/robot_activity)
 Copyright (C) 2017 - Maciej Żurad, University of Luxembourg
-
-[![Build Status](https://travis-ci.org/snt-robotics/robot_activity.svg?branch=master)](https://travis-ci.org/snt-robotics/robot_activity)
 
 ROS packages, which implements **managed** nodes. Main features are:
 - Controllable node lifecycle
