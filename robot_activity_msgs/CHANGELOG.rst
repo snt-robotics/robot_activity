@@ -2,7 +2,7 @@
 Changelog for package robot_activity_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.1.1 (2018-04-16)
+0.1.1 (forthcoming)
 -------------------
 * package renamed to robot_activity_msgs
 * Contributors: Maciej Zurad
