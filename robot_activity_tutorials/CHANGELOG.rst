@@ -2,8 +2,8 @@
 Changelog for package robot_activity_tutorials
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.1.1 (forthcoming)
--------------------
+0.1.1 (2018-04-18)
+------------------
 * package renamed to robot_activity_tutorials
 * Contributors: Maciej Zurad
 
