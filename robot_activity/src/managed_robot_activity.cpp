@@ -71,8 +71,8 @@ void ManagedRobotActivity::onUnconfigure()
 void ManagedRobotActivity::onStart()
 {
   ROS_DEBUG("onStart");
-  service_manager.acquireAll(node_handle_private_);
-  subscriber_manager.acquireAll(node_handle_private_);
+  service_manager.acquireAll(node_handle_);
+  subscriber_manager.acquireAll(node_handle_);
   onManagedStart();
 }
 
