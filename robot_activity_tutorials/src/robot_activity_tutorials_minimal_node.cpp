@@ -62,8 +62,8 @@ private:
     service_manager.advertiseService("test",
                                      &MyRobotActivity::myServiceCallback, this);
 
-    registerIsolatedTimer(std::bind(&MyRobotActivity::myTimerCallback, this),
-                          0.5, true);
+    auto timer = registerIsolatedTimer(
+      std::bind(&MyRobotActivity::myTimerCallback, this), 0.5, true);
   };
   void onManagedTerminate() override {};
 

@@ -183,16 +183,19 @@ protected:
    *          state will pause its execution, meaning that the callback
    *          still executes, but returns immediately. When RobotActivity
    *          transitions to STOPPED state, the timer is stopped completely
-   *          and started again during transition from STOPPED to PAUSED
+   *          and started again during transition from STOPPED to PAUSED.
+   *          The function returns a reference to the newly created timer.
    *
    * @param callback Timer callback to be registered
    * @param frequency Frequency of the timer in Hz
    * @param stoppable If true, timer cannot be stopped when transitioning to
    *                  PAUSED or STOPPED state
+   * @returns A shared pointer to the newly created timer
    */
-  void registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
-                             const float& frequency,
-                             bool stoppable = true);
+  std::shared_ptr<IsolatedAsyncTimer>
+  registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
+                        const float& frequency,
+                        bool stoppable = true);
 
 private:
   /**

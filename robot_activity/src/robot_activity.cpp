@@ -172,19 +172,20 @@ void RobotActivity::notifyError(uint8_t error_type,
   process_error_pub_.publish(error_msg);
 }
 
-void RobotActivity::registerIsolatedTimer(
+std::shared_ptr<IsolatedAsyncTimer> RobotActivity::registerIsolatedTimer(
   const IsolatedAsyncTimer::LambdaCallback& callback,
   const float& frequency,
   bool stoppable)
 {
-  process_timers_.emplace_back(
-    std::make_shared<IsolatedAsyncTimer>(
-      *node_handle_private_,
-      callback,
-      frequency,
-      stoppable,
-      false,
-      false));
+  auto isolated_async_timer = std::make_shared<IsolatedAsyncTimer>(
+    *node_handle_private_,
+    callback,
+    frequency,
+    stoppable,
+    false,
+    false);
+  process_timers_.push_back(isolated_async_timer);
+  return isolated_async_timer;
 }
 
 std::string RobotActivity::getNamespace() const
