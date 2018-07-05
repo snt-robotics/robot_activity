@@ -97,17 +97,17 @@ RobotActivity& RobotActivity::init(bool autostart)
   ROS_INFO_STREAM("autostart_after_reconfigure = "
                   << std::boolalpha << autostart_after_reconfigure_);
 
-  terminate_server_ = registerStateChangeRequest("terminate", {State::TERMINATED}); // NOLINT
-  reconfigure_server_ = registerStateChangeRequest("reconfigure",
+  terminate_server_ = registerStateChangeRequest("robot_activity/terminate", {State::TERMINATED}); // NOLINT
+  reconfigure_server_ = registerStateChangeRequest("robot_activity/reconfigure",
     {
       State::UNCONFIGURED,
       autostart_after_reconfigure_ ? State::RUNNING : State::STOPPED
     }); // NOLINT
 
-  restart_server_ = registerStateChangeRequest("restart", {State::STOPPED, State::RUNNING}); // NOLINT
-  start_server_   = registerStateChangeRequest("start", {State::RUNNING}); // NOLINT
-  stop_server_    = registerStateChangeRequest("stop",  {State::STOPPED}); // NOLINT
-  pause_server_   = registerStateChangeRequest("pause", {State::PAUSED}); // NOLINT
+  restart_server_ = registerStateChangeRequest("robot_activity/restart", {State::STOPPED, State::RUNNING}); // NOLINT
+  start_server_   = registerStateChangeRequest("robot_activity/start", {State::RUNNING}); // NOLINT
+  stop_server_    = registerStateChangeRequest("robot_activity/stop",  {State::STOPPED}); // NOLINT
+  pause_server_   = registerStateChangeRequest("robot_activity/pause", {State::PAUSED}); // NOLINT
 
   float heartbeat_rate;
   ros::param::param<float>("~heartbeat_rate", heartbeat_rate, 1.0f);

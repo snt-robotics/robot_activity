@@ -158,12 +158,12 @@ TEST(RobotActivityTests, StartStopServiceState)
   test.runAsync();
   EXPECT_EQ(test.getState(), State::STOPPED);
 
-  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/start");
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
   std_srvs::Empty start_empty;
   EXPECT_EQ(start.call(start_empty), true);
   EXPECT_EQ(test.getState(), State::RUNNING);
 
-  auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/stop");
+  auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/stop");
   std_srvs::Empty stop_empty;
   EXPECT_EQ(stop.call(stop_empty), true);
   EXPECT_EQ(test.getState(), State::STOPPED);
@@ -186,12 +186,12 @@ TEST(RobotActivityTests, PauseResumeServiceState)
   test.runAsync();
   EXPECT_EQ(test.getState(), State::RUNNING);
 
-  auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/pause");
+  auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/pause");
   std_srvs::Empty pause_empty;
   EXPECT_EQ(pause.call(pause_empty), true);
   EXPECT_EQ(test.getState(), State::PAUSED);
 
-  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/start");
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
   std_srvs::Empty start_empty;
   EXPECT_EQ(start.call(start_empty), true);
   EXPECT_EQ(test.getState(), State::RUNNING);
@@ -231,7 +231,7 @@ TEST(RobotActivityTests, RestartServiceState)
   };
 
   auto sub = nh.subscribe("/heartbeat", 0, check_transitions_cb);
-  auto restart = nh.serviceClient<std_srvs::Empty>("/remapped_name/restart");
+  auto restart = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/restart");
   std_srvs::Empty restart_empty;
   EXPECT_EQ(restart.call(restart_empty), true);
   EXPECT_EQ(test.getState(), State::RUNNING);
@@ -274,7 +274,7 @@ TEST(RobotActivityTests, ReconfigureServiceState)
   };
 
   auto sub = nh.subscribe("/heartbeat", 0, check_transitions_cb);
-  auto reconfigure = nh.serviceClient<std_srvs::Empty>("/remapped_name/reconfigure");
+  auto reconfigure = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/reconfigure");
   std_srvs::Empty reconfigure_empty;
   EXPECT_EQ(reconfigure.call(reconfigure_empty), true);
   EXPECT_EQ(test.getState(), State::RUNNING);
@@ -298,7 +298,7 @@ TEST(RobotActivityTests, NoAutostartAfterReconfigureServiceState)
   test.runAsync();
   EXPECT_EQ(test.getState(), State::RUNNING);
 
-  auto reconfigure = nh.serviceClient<std_srvs::Empty>("/remapped_name/reconfigure");
+  auto reconfigure = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/reconfigure");
   std_srvs::Empty reconfigure_empty;
   EXPECT_EQ(reconfigure.call(reconfigure_empty), true);
   EXPECT_EQ(test.getState(), State::STOPPED);
@@ -321,7 +321,7 @@ TEST(RobotActivityTests, TerminateServiceState)
   test.runAsync();
   EXPECT_EQ(test.getState(), State::STOPPED);
 
-  auto terminate = nh.serviceClient<std_srvs::Empty>("/remapped_name/terminate");
+  auto terminate = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/terminate");
   std_srvs::Empty terminate_empty;
   EXPECT_EQ(terminate.call(terminate_empty), true);
   EXPECT_EQ(test.getState(), State::TERMINATED);
@@ -356,8 +356,8 @@ TEST(RobotActivityTests, StoppableIsolatedAsyncTimer)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/start");
-  auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/pause");
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
+  auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/pause");
   std_srvs::Empty pause_empty, start_empty;
 
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
@@ -384,8 +384,8 @@ TEST(RobotActivityTests, NonStoppableIsolatedAsyncTimer)
   nh.setParam("/remapped_name/wait_for_supervisor", false);
   nh.setParam("/remapped_name/autostart", true);
 
-  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/start");
-  auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/stop");
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
+  auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/stop");
   std_srvs::Empty stop_empty, start_empty;
 
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
