@@ -244,7 +244,7 @@ private:
         if (ev.last_real.toSec() != 0 && last_loop_duration > period_.toSec())
         {
           auto lag = last_loop_duration - period_.toSec();
-          ROS_WARN_STREAM(
+          ROS_WARN_STREAM_THROTTLE(1,
             "Missed it's desired rate of " << frequency_ <<
             " [Hz], the loop actually took " << last_loop_duration
             << " [s], which is " << lag << " [s] longer");
