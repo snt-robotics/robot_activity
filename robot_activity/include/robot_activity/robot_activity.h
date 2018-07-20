@@ -190,12 +190,16 @@ protected:
    * @param frequency Frequency of the timer in Hz
    * @param stoppable If true, timer cannot be stopped when transitioning to
    *                  PAUSED or STOPPED state
+   * @param autostart
+   * @param oneshot
    * @returns A shared pointer to the newly created timer
    */
   std::shared_ptr<IsolatedAsyncTimer>
   registerIsolatedTimer(const IsolatedAsyncTimer::LambdaCallback& callback,
                         const float& frequency,
-                        bool stoppable = true);
+                        bool stoppable = true,
+                        bool autostart = false,
+                        bool oneshot = false);
 
 private:
   /**

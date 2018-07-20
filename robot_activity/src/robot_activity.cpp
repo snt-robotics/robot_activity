@@ -175,15 +175,17 @@ void RobotActivity::notifyError(uint8_t error_type,
 std::shared_ptr<IsolatedAsyncTimer> RobotActivity::registerIsolatedTimer(
   const IsolatedAsyncTimer::LambdaCallback& callback,
   const float& frequency,
-  bool stoppable)
+  bool stoppable,
+  bool autostart,
+  bool oneshot)
 {
   auto isolated_async_timer = std::make_shared<IsolatedAsyncTimer>(
     *node_handle_private_,
     callback,
     frequency,
     stoppable,
-    false,
-    false);
+    autostart,
+    oneshot);
   process_timers_.push_back(isolated_async_timer);
   return isolated_async_timer;
 }
