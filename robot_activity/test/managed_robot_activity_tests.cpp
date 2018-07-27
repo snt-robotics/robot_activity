@@ -37,101 +37,63 @@
 #include <gtest/gtest.h>
 
 #include <ros/ros.h>
-#include <robot_activity/robot_activity.h>
+#include <robot_activity/managed_robot_activity.h>
 #include <robot_activity_msgs/State.h>
 
 #include <std_srvs/Empty.h>
+#include <std_msgs/Int32.h>
 
 #include <vector>
 #include <string>
 
-using robot_activity::RobotActivity;
+using robot_activity::ManagedRobotActivity;
 using robot_activity::State;
-using robot_activity::IsolatedAsyncTimer;
 
-class AnyRobotActivity : public RobotActivity
+class AnyManagedRobotActivity : public ManagedRobotActivity
 {
 public:
-  using RobotActivity::RobotActivity;
-  ~AnyRobotActivity() {}
+  using ManagedRobotActivity::ManagedRobotActivity;
+  ~AnyManagedRobotActivity() {};
 private:
-  void onCreate() override {};
-  void onTerminate() override {};
+  void onManagedCreate() override {};
+  void onManagedTerminate() override {};
 
-  void onConfigure() override {};
-  void onUnconfigure() override {};
+  void onManagedConfigure() override {};
+  void onManagedUnconfigure() override {};
 
-  void onStart() override {};
-  void onStop() override {};
+  void onManagedStart() override {};
+  void onManagedStop() override {};
 
-  void onResume() override {};
-  void onPause() override {};
+  void onManagedResume() override {};
+  void onManagedPause() override {};
 };
 
-class AnyRobotActivityWithTimer : public AnyRobotActivity
+class AnyManagedRobotActivityWithSubscriber : public AnyManagedRobotActivity
 {
 public:
-  using AnyRobotActivity::AnyRobotActivity;
-  int context = 0;
-  bool stoppable = true;
+  using AnyManagedRobotActivity::AnyManagedRobotActivity;
+  int32_t data = 0;
 private:
-  void onCreate() override
+  void onManagedCreate() override
   {
-    IsolatedAsyncTimer::LambdaCallback cb = [this]() { context++; };
-    registerIsolatedTimer(cb, 1, stoppable);
+    subscriber_manager.subscribe("test", 1,
+      &AnyManagedRobotActivityWithSubscriber::callback, this);
   }
+  void callback(boost::shared_ptr<std_msgs::Int32 const> msg)
+  {
+    data = msg->data;
+  };
 };
 
-TEST(
-RobotActivityTests, RemappedNameInitializedStateAndNamespace)
+
+TEST(ManagedRobotActivityTests, AutostartNonWaitingStateAndNamespace)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
-  EXPECT_EQ(test.getState(), State::LAUNCHING);
-  EXPECT_EQ(test.getNamespace(), std::string(""));
-
-  boost::function<void(const robot_activity_msgs::State::ConstPtr&)> empty_cb =
-    [](const robot_activity_msgs::State::ConstPtr &s){};
-
-  ros::NodeHandle nh;
-  auto sub = nh.subscribe("/heartbeat", 1, empty_cb);
-
-  test.init();
-  EXPECT_EQ(test.getState(), State::STOPPED);
-  EXPECT_EQ(test.getNamespace(), std::string("/remapped_name"));
-}
-
-TEST(RobotActivityTests, InitializedNonWaitingStateAndNamespace)
-{
-  int argc = 2;
-  const char* argv[2];
-  argv[0] = "random_process_name";
-  argv[1] = "__name:=remapped_name";
-
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
-
-  ros::NodeHandle nh;
-  nh.setParam("/remapped_name/wait_for_supervisor", false);
-
-  EXPECT_EQ(test.getState(), State::LAUNCHING);
-  EXPECT_EQ(test.getNamespace(), std::string(""));
-  test.init();
-  EXPECT_EQ(test.getState(), State::STOPPED);
-  EXPECT_EQ(test.getNamespace(), std::string("/remapped_name"));
-}
-
-TEST(RobotActivityTests, AutostartNonWaitingStateAndNamespace)
-{
-  int argc = 2;
-  const char* argv[2];
-  argv[0] = "random_process_name";
-  argv[1] = "__name:=remapped_name";
-
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
@@ -144,14 +106,14 @@ TEST(RobotActivityTests, AutostartNonWaitingStateAndNamespace)
   EXPECT_EQ(test.getNamespace(), std::string("/remapped_name"));
 }
 
-TEST(RobotActivityTests, StartStopServiceState)
+TEST(ManagedRobotActivityTests, StartStopServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
@@ -173,14 +135,14 @@ TEST(RobotActivityTests, StartStopServiceState)
   EXPECT_EQ(test.getState(), State::STOPPED);
 }
 
-TEST(RobotActivityTests, PauseResumeServiceState)
+TEST(ManagedRobotActivityTests, PauseResumeServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
@@ -202,14 +164,14 @@ TEST(RobotActivityTests, PauseResumeServiceState)
   EXPECT_EQ(test.getState(), State::RUNNING);
 }
 
-TEST(RobotActivityTests, RestartServiceState)
+TEST(ManagedRobotActivityTests, RestartServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
@@ -243,14 +205,14 @@ TEST(RobotActivityTests, RestartServiceState)
   EXPECT_EQ(test.getState(), State::RUNNING);
 }
 
-TEST(RobotActivityTests, ReconfigureServiceState)
+TEST(ManagedRobotActivityTests, ReconfigureServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/autostart_after_reconfigure", true);
@@ -287,14 +249,14 @@ TEST(RobotActivityTests, ReconfigureServiceState)
   EXPECT_EQ(test.getState(), State::RUNNING);
 }
 
-TEST(RobotActivityTests, NoAutostartAfterReconfigureServiceState)
+TEST(ManagedRobotActivityTests, NoAutostartAfterReconfigureServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/autostart_after_reconfigure", false);
@@ -312,14 +274,14 @@ TEST(RobotActivityTests, NoAutostartAfterReconfigureServiceState)
   EXPECT_EQ(test.getState(), State::STOPPED);
 }
 
-TEST(RobotActivityTests, TerminateServiceState)
+TEST(ManagedRobotActivityTests, TerminateServiceState)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivity test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivity test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
@@ -336,83 +298,48 @@ TEST(RobotActivityTests, TerminateServiceState)
   EXPECT_EQ(test.getState(), State::TERMINATED);
 }
 
-TEST(RobotActivityTests, IsolatedAsyncTimer)
+TEST(ManagedRobotActivityTests, ManagedSubscriberCheck)
 {
   int argc = 2;
   const char* argv[2];
   argv[0] = "random_process_name";
   argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
+  AnyManagedRobotActivityWithSubscriber test(argc, const_cast<char**>(argv));
 
   ros::NodeHandle nh;
   nh.setParam("/remapped_name/wait_for_supervisor", false);
-  nh.setParam("/remapped_name/autostart", true);
+  nh.setParam("/remapped_name/autostart", false);
+
+  auto publisher = nh.advertise<std_msgs::Int32>("test", 1);
+  EXPECT_EQ(publisher.getNumSubscribers(), 0);
 
   test.init().runAsync();
-  ros::Duration(2.1).sleep();
-  EXPECT_EQ(test.context, 2);
-}
-
-
-TEST(RobotActivityTests, StoppableIsolatedAsyncTimer)
-{
-  int argc = 2;
-  const char* argv[2];
-  argv[0] = "random_process_name";
-  argv[1] = "__name:=remapped_name";
-
-  AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
-
-  ros::NodeHandle nh;
-  nh.setParam("/remapped_name/wait_for_supervisor", false);
-  nh.setParam("/remapped_name/autostart", true);
+  EXPECT_EQ(test.getState(), State::STOPPED);
+  EXPECT_EQ(publisher.getNumSubscribers(), 0);
 
   auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
+  std_srvs::Empty start_empty;
+  EXPECT_EQ(start.call(start_empty), true);
+  EXPECT_EQ(test.getState(), State::RUNNING);
+  EXPECT_EQ(publisher.getNumSubscribers(), 1);
+
+  int32_t data_to_send = 42;
+  std_msgs::Int32 msg;
+  msg.data = data_to_send;
+  publisher.publish(msg);
+  ros::spinOnce();
+  sleep(4);
+  EXPECT_EQ(test.data, data_to_send);
+
   auto pause = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/pause");
-  std_srvs::Empty pause_empty, start_empty;
-
-  test.init().runAsync();
-
-  ros::Duration(1.1).sleep();
-  EXPECT_EQ(test.context, 1);
+  std_srvs::Empty pause_empty;
   EXPECT_EQ(pause.call(pause_empty), true);
-  ros::Duration(1.0).sleep();
-  EXPECT_EQ(test.context, 1);
-  EXPECT_EQ(start.call(start_empty), true);
-  ros::Duration(1.1).sleep();
-  EXPECT_EQ(test.context, 2);
+  EXPECT_EQ(test.getState(), State::PAUSED);
+  EXPECT_EQ(publisher.getNumSubscribers(), 1);
 }
 
-TEST(RobotActivityTests, NonStoppableIsolatedAsyncTimer)
-{
-  int argc = 2;
-  const char* argv[2];
-  argv[0] = "random_process_name";
-  argv[1] = "__name:=remapped_name";
 
-  AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
-
-  ros::NodeHandle nh;
-  nh.setParam("/remapped_name/wait_for_supervisor", false);
-  nh.setParam("/remapped_name/autostart", true);
-
-  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
-  auto stop = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/stop");
-  std_srvs::Empty stop_empty, start_empty;
-
-  test.stoppable = false;
-  test.init().runAsync();
-
-  ros::Duration(1.1).sleep();
-  EXPECT_EQ(test.context, 1);
-  EXPECT_EQ(stop.call(stop_empty), true);
-  ros::Duration(1.1).sleep();
-  EXPECT_EQ(test.context, 2);
-  EXPECT_EQ(start.call(start_empty), true);
-  ros::Duration(1.1).sleep();
-  EXPECT_EQ(test.context, 3);
-}
 
 int main(int argc, char **argv)
 {

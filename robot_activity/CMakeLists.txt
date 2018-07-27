@@ -65,6 +65,13 @@ if(CATKIN_ENABLE_TESTING)
   add_dependencies(robot_activity_tests ${catkin_EXPORTED_TARGETS})
   target_link_libraries(robot_activity_tests robot_activity ${catkin_LIBRARIES})
 
+  add_rostest_gtest(
+    managed_robot_activity_tests
+    test/managed_robot_activity.test
+    test/managed_robot_activity_tests.cpp)
+  add_dependencies(managed_robot_activity_tests ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(managed_robot_activity_tests robot_activity ${catkin_LIBRARIES})
+
   add_executable(any_robot_activity test/any_robot_activity.cpp)
   add_dependencies(any_robot_activity ${catkin_EXPORTED_TARGETS})
   target_link_libraries(any_robot_activity robot_activity ${catkin_LIBRARIES})

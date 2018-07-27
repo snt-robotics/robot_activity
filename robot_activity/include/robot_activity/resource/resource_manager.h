@@ -73,7 +73,14 @@ public:
   /**
    * @brief Default constructor
    */
-  ResourceManager() : resources_() {}
+  ResourceManager() : resources_() {};
+
+  /**
+   * @brief ResourceManager constructor, takes a default node handle used
+   *        to acquire resources
+   */
+  ResourceManager(const ros::NodeHandlePtr& node_handle)
+  : resources_(), node_handle_(node_handle) {}
 
   /**
    * @brief Default destructor
@@ -100,11 +107,19 @@ public:
   }
 
   /**
-   * @brief Acquires all managed resources
+   * @brief Sets node handle used for acquiring resources
    *
-   * @param node_handle ROS Node handle is necessary for acquiring
+   * @param node_handle ros::NodeHandlePtr that will be set
    */
-  void acquireAll(const ros::NodeHandlePtr& node_handle);
+  void setNodeHandle(const ros::NodeHandlePtr& node_handle)
+  {
+    node_handle_ = node_handle;
+  }
+
+  /**
+   * @brief Acquires all managed resources
+   */
+  void acquireAll();
 
   /**
    * @brief Releases all managed resources
@@ -122,7 +137,15 @@ public:
   void resumeAll();
 
 private:
+  /**
+   * @brief Managed resources
+   */
   std::vector<typename Resource::SharedPtr> resources_;
+
+  /**
+   * @brief Node handle necessary for acquiring resources
+   */
+  ros::NodeHandlePtr node_handle_ = nullptr;
 };
 
 /**

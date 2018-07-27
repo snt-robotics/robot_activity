@@ -42,10 +42,17 @@ namespace resource
 {
 
 template<class Resource>
-void ResourceManager<Resource>::acquireAll(const ros::NodeHandlePtr& node_handle)
+void ResourceManager<Resource>::acquireAll()
 {
+  if (node_handle_ == nullptr)
+  {
+    ROS_FATAL_STREAM("ResourceManager cannot acquire resources " <<
+                     "with an invalid node handle");
+    return;
+  }
+
   for (auto && r : resources_)
-    r->acquire(node_handle);
+    r->acquire(node_handle_);
 }
 
 template<class Resource>

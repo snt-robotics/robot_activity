@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="managed_robot_activity_tests" pkg="robot_activity" type="managed_robot_activity_tests" />
+</launch>

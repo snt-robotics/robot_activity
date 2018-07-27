@@ -47,6 +47,8 @@ ManagedRobotActivity::~ManagedRobotActivity()
 void ManagedRobotActivity::onCreate()
 {
   ROS_DEBUG("onCreate");
+  service_manager.setNodeHandle(node_handle_);
+  subscriber_manager.setNodeHandle(node_handle_);
   onManagedCreate();
 }
 
@@ -71,8 +73,8 @@ void ManagedRobotActivity::onUnconfigure()
 void ManagedRobotActivity::onStart()
 {
   ROS_DEBUG("onStart");
-  service_manager.acquireAll(node_handle_);
-  subscriber_manager.acquireAll(node_handle_);
+  service_manager.acquireAll();
+  subscriber_manager.acquireAll();
   onManagedStart();
 }
 

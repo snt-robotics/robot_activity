@@ -38,9 +38,6 @@
 
 #include <ros/ros.h>
 #include <robot_activity/robot_activity.h>
-#include <robot_activity_msgs/State.h>
-
-#include <std_srvs/Empty.h>
 
 namespace
 {
