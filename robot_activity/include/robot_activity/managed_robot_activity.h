@@ -108,12 +108,16 @@ private:
   /**
    * @brief Overriden onConfigure, which calls onManagedConfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
+   *
+   * @return Returns true if onManagedConfigure succeeded
    */
   bool onConfigure() final;
 
   /**
    * @brief Overriden onUnconfigure, which calls onManagedUnconfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
+   *
+   * @return Returns true if onManagedUnconfigure succeeded
    */
   bool onUnconfigure() final;
 
@@ -123,6 +127,8 @@ private:
    *        It subscribes and adverties all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedStart succeeded
    */
   bool onStart() final;
 
@@ -132,6 +138,8 @@ private:
    *        It shutdowns all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedStop succeeded
    */
   bool onStop() final;
 
@@ -141,6 +149,8 @@ private:
    *        It pauses all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedPause succeeded
    */
   bool onPause() final;
 
@@ -150,12 +160,14 @@ private:
    *        It resumes all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedResume succeeded
    */
   bool onResume() final;
 
   /**
    * @brief User-defined function that's called at the end of transition from
-   *        LAUNCHING to UNCONFIGURED state
+   *        LAUNCHING to UNCONFIGURED state.
    */
   virtual void onManagedCreate() = 0;
 
@@ -168,36 +180,66 @@ private:
   /**
    * @brief User-defined function that's called at the end of transition from
    *        UNCONFIGURED to STOPPED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
   virtual bool onManagedConfigure() = 0;
 
   /**
   * @brief User-defined function that's called at the end of transition from
   *        STOPPED to UNCONFIGURED state
+  *        User has to return true or false, indicating whether the transition
+  *        has succeeded or not. In case of failure, the state remains
+  *        unchanged
+  *
+  * @return Returns true if transition succeeded
   */
   virtual bool onManagedUnconfigure() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        STOPPED to PAUSED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
   virtual bool onManagedStart() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to STOPPED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
   virtual bool onManagedStop() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        RUNNING to PAUSED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
   virtual bool onManagedPause() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to RUNNING state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
   virtual bool onManagedResume() = 0;
 };
