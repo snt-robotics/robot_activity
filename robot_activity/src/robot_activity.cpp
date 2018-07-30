@@ -142,14 +142,14 @@ RobotActivity& RobotActivity::init(bool autostart)
   if (autostart_)
   {
     auto start = node_handle_private_->serviceClient<std_srvs::Empty>("robot_activity/start");
-    auto ret = start.call(empty);
-    ROS_INFO_STREAM("ret = " << std::boolalpha << ret);
+    start.waitForExistence();
+    start.call(empty);
   }
   else
   {
     auto stop = node_handle_private_->serviceClient<std_srvs::Empty>("robot_activity/stop");
-    auto ret = stop.call(empty);
-    ROS_INFO_STREAM("ret = " << std::boolalpha << ret);
+    stop.waitForExistence();
+    stop.call(empty);
   }
 
   return *this;
