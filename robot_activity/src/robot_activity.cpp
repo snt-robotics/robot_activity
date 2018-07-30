@@ -199,33 +199,35 @@ std::string RobotActivity::getNamespace() const
 }
 
 
-void RobotActivity::create()
+bool RobotActivity::create()
 {
   PRINT_FUNC_CALL("create");
   onCreate();
+  return true;
 }
 
-void RobotActivity::terminate()
+bool RobotActivity::terminate()
 {
   PRINT_FUNC_CALL("terminate");
   onTerminate();
+  return true;
   // ros::Rate(2).sleep();
   // ros::shutdown();
 }
 
-void RobotActivity::configure()
+bool RobotActivity::configure()
 {
   PRINT_FUNC_CALL("configure");
-  onConfigure();
+  return onConfigure();
 }
 
-void RobotActivity::unconfigure()
+bool RobotActivity::unconfigure()
 {
   PRINT_FUNC_CALL("unconfigure");
-  onUnconfigure();
+  return onUnconfigure();
 }
 
-void RobotActivity::start()
+bool RobotActivity::start()
 {
   PRINT_FUNC_CALL("start");
   for (const auto & timer : process_timers_)
@@ -233,10 +235,10 @@ void RobotActivity::start()
     ROS_DEBUG("Starting timer");
     timer->start();
   }
-  onStart();
+  return onStart();
 }
 
-void RobotActivity::stop()
+bool RobotActivity::stop()
 {
   PRINT_FUNC_CALL("stop");
   for (const auto & timer : process_timers_)
@@ -244,10 +246,10 @@ void RobotActivity::stop()
     ROS_DEBUG("Stopping timer");
     timer->stop();
   }
-  onStop();
+  return onStop();
 }
 
-void RobotActivity::resume()
+bool RobotActivity::resume()
 {
   PRINT_FUNC_CALL("resume");
   for (const auto & timer : process_timers_)
@@ -255,10 +257,10 @@ void RobotActivity::resume()
     ROS_DEBUG("Resuming timer");
     timer->resume();
   }
-  onResume();
+  return onResume();
 }
 
-void RobotActivity::pause()
+bool RobotActivity::pause()
 {
   PRINT_FUNC_CALL("pause");
   for (const auto & timer : process_timers_)
@@ -266,7 +268,7 @@ void RobotActivity::pause()
     ROS_DEBUG("Pausing timer");
     timer->pause();
   }
-  onPause();
+  return onPause();
 }
 
 ros::ServiceServer RobotActivity::registerStateChangeRequest(
@@ -307,7 +309,8 @@ void RobotActivity::notifyState() const
 
 bool RobotActivity::transitionToState(const State& goal_state)
 {
-  if (current_state_ == goal_state)
+  const State& starting_state = current_state_;
+  if (starting_state == goal_state)
   {
     ROS_WARN_STREAM("Node is already at state " << goal_state);
     return false;
@@ -320,16 +323,23 @@ bool RobotActivity::transitionToState(const State& goal_state)
     State next_state = STATE_TRANSITIONS_PATHS[from_state][to_state];
     if (next_state == State::INVALID)
     {
-      ROS_WARN_STREAM("There is no transition path from [" << current_state_
+      ROS_WARN_STREAM("There is no transition path from [" << starting_state
                       << "] to [" << goal_state << "]");
       return false;
     }
-    changeState(next_state);
+    bool transition_result = changeState(next_state);
+    if (!transition_result)
+    {
+      ROS_WARN_STREAM("Transition from [" << starting_state
+                      << "] to [" << goal_state << "] has failed during ["
+                      << current_state_ << "]");
+      return false;
+    }
   }
   return true;
 }
 
-void RobotActivity::changeState(const State& new_state)
+bool RobotActivity::changeState(const State& new_state)
 {
   uint8_t from_state = static_cast<uint8_t>(current_state_);
   uint8_t to_state = static_cast<uint8_t>(new_state);
@@ -339,15 +349,24 @@ void RobotActivity::changeState(const State& new_state)
     ROS_FATAL_STREAM_ONCE(
       "Tried changing state from [" << current_state_
       << "] to [" << new_state << "]. Transition does NOT exist!");
-    return;
+    return false;
   }
-  ROS_DEBUG_STREAM(
-    "Changing state from [" << current_state_ << "] to ["
-    << new_state << "]");
-  current_state_ = new_state;
-
-  boost::bind(callback, this)();
+  bool transition_result = boost::bind(callback, this)();
+  if (transition_result)
+  {
+    ROS_DEBUG_STREAM(
+      "Chaning state from [" << current_state_ << "] to ["
+      << new_state << "] succeeded!");
+    current_state_ = new_state;
+  }
+  else
+  {
+    ROS_ERROR_STREAM(
+      "Changing state from [" << current_state_ << "] to ["
+      << new_state << "] failed!");
+  }
   notifyState();
+  return transition_result;
 }
 
 std::ostream& operator<<(std::ostream& os, State state)

@@ -56,48 +56,48 @@ void ManagedRobotActivity::onTerminate()
   onManagedTerminate();
 }
 
-void ManagedRobotActivity::onConfigure()
+bool ManagedRobotActivity::onConfigure()
 {
   ROS_DEBUG("onConfigure");
-  onManagedConfigure();
+  return onManagedConfigure();
 }
 
-void ManagedRobotActivity::onUnconfigure()
+bool ManagedRobotActivity::onUnconfigure()
 {
   ROS_DEBUG("onUnconfigure");
-  onManagedUnconfigure();
+  return onManagedUnconfigure();
 }
 
-void ManagedRobotActivity::onStart()
+bool ManagedRobotActivity::onStart()
 {
   ROS_DEBUG("onStart");
   service_manager.acquireAll(node_handle_);
   subscriber_manager.acquireAll(node_handle_);
-  onManagedStart();
+  return onManagedStart();
 }
 
-void ManagedRobotActivity::onStop()
+bool ManagedRobotActivity::onStop()
 {
   ROS_DEBUG("onStop");
   service_manager.releaseAll();
   subscriber_manager.releaseAll();
-  onManagedStop();
+  return onManagedStop();
 }
 
-void ManagedRobotActivity::onPause()
+bool ManagedRobotActivity::onPause()
 {
   ROS_DEBUG("onPause");
   service_manager.pauseAll();
   subscriber_manager.pauseAll();
-  onManagedPause();
+  return onManagedPause();
 }
 
-void ManagedRobotActivity::onResume()
+bool ManagedRobotActivity::onResume()
 {
   ROS_DEBUG("onResume");
   service_manager.resumeAll();
   subscriber_manager.resumeAll();
-  onManagedResume();
+  return onManagedResume();
 }
 
 }  // namespace robot_activity

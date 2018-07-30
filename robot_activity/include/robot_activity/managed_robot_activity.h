@@ -109,13 +109,13 @@ private:
    * @brief Overriden onConfigure, which calls onManagedConfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
    */
-  void onConfigure() final;
+  bool onConfigure() final;
 
   /**
    * @brief Overriden onUnconfigure, which calls onManagedUnconfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
    */
-  void onUnconfigure() final;
+  bool onUnconfigure() final;
 
   /**
    * @brief Overriden onStart, which calls onManagedStart. Cannot be
@@ -124,7 +124,7 @@ private:
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
    */
-  void onStart() final;
+  bool onStart() final;
 
   /**
    * @brief Overriden onStop, which calls onManagedStop. Cannot be
@@ -133,7 +133,7 @@ private:
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
    */
-  void onStop() final;
+  bool onStop() final;
 
   /**
    * @brief Overriden onPause, which calls onManagedPause. Cannot be
@@ -142,7 +142,7 @@ private:
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
    */
-  void onPause() final;
+  bool onPause() final;
 
   /**
    * @brief Overriden onResume, which calls onManagedResume. Cannot be
@@ -151,7 +151,7 @@ private:
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
    */
-  void onResume() final;
+  bool onResume() final;
 
   /**
    * @brief User-defined function that's called at the end of transition from
@@ -169,37 +169,37 @@ private:
    * @brief User-defined function that's called at the end of transition from
    *        UNCONFIGURED to STOPPED state
    */
-  virtual void onManagedConfigure() = 0;
+  virtual bool onManagedConfigure() = 0;
 
   /**
   * @brief User-defined function that's called at the end of transition from
   *        STOPPED to UNCONFIGURED state
   */
-  virtual void onManagedUnconfigure() = 0;
+  virtual bool onManagedUnconfigure() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        STOPPED to PAUSED state
    */
-  virtual void onManagedStart() = 0;
+  virtual bool onManagedStart() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to STOPPED state
    */
-  virtual void onManagedStop() = 0;
+  virtual bool onManagedStop() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        RUNNING to PAUSED state
    */
-  virtual void onManagedPause() = 0;
+  virtual bool onManagedPause() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to RUNNING state
    */
-  virtual void onManagedResume() = 0;
+  virtual bool onManagedResume() = 0;
 };
 
 }  // namespace robot_activity
