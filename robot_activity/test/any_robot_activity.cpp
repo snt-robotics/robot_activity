@@ -56,14 +56,14 @@ private:
   void onCreate() override {};
   void onTerminate() override {};
 
-  void onConfigure() override {};
-  void onUnconfigure() override {};
+  bool onConfigure() override { return true; };
+  bool onUnconfigure() override { return true; };
 
-  void onStart() override {};
-  void onStop() override {};
+  bool onStart() override { return true; };
+  bool onStop() override { return true; };
 
-  void onResume() override {};
-  void onPause() override {};
+  bool onResume() override { return true; };
+  bool onPause() override { return true; };
 };
 
 }  // anonymous namespace
