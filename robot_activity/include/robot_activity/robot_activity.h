@@ -324,78 +324,126 @@ private:
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from UNCONFIGURED to STOPPED.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onConfigure() = 0;
+  virtual bool onConfigure() = 0;
 
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from STOPPED to UNCONFIGURED.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onUnconfigure() = 0;
+  virtual bool onUnconfigure() = 0;
 
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from STOPPED to PAUSED.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onStart() = 0;
+  virtual bool onStart() = 0;
 
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from PAUSED to STOPPED.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onStop() = 0;
+  virtual bool onStop() = 0;
 
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from RUNNING to PAUSED.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onPause() = 0;
+  virtual bool onPause() = 0;
 
   /**
    * @brief Function to be defined by the user.
    *        Called at the end of transition from PAUSED to RUNNING.
+   *        User must return true or false depending whether transition should
+   *        succeed or not.
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onResume() = 0;
+  virtual bool onResume() = 0;
 
   /**
    * @brief Called automatically, when transition from LAUNCHING to UNCONFIGURED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onCreate.
+   * @return Returns true always.
    */
-  void create();
+  bool create();
 
   /**
    * @brief Called automatically, when transition from UNCONFIGURED to TERMINATED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onTerminate.
+   * @return Returns true always.
    */
-  void terminate();
+  bool terminate();
 
   /**
    * @brief Called automatically, when transition from UNCONFIGURED to STOPPED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onConfigure.
+   * @return Returns the result of onConfigure.
    */
-  void configure();
+  bool configure();
 
   /**
    * @brief Called automatically, when transition from STOPPED to UNCONFIGURED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onUnconfigure.
+   * @return Returns the result of onUnconfigure.
    */
-  void unconfigure();
+  bool unconfigure();
 
   /**
    * @brief Called automatically, when transition from STOPPED to PAUSED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onStart.
+   * @return Returns the result of onStart.
    */
-  void start();
+  bool start();
 
   /**
    * @brief Called automatically, when transition from PAUSED to STOPPED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onStop.
+   * @return Returns the result of onStop.
    */
-  void stop();
+  bool stop();
 
   /**
    * @brief Called automatically, when transition from PAUSED to RUNNING.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onResume.
+   * @return Returns the result of onResume.
    */
-  void resume();
+  bool resume();
 
   /**
    * @brief Called automatically, when transition from RUNNING to PAUSED.
+   *        RobotActivity calls this function directly during transition,
+   *        which internally calls the user-defined RobotActivity::onPause.
+   * @return Returns the result of onPause.
    */
-  void pause();
+  bool pause();
 
   /**
    * @brief Sends a heartbeat message with the current state
@@ -407,8 +455,9 @@ private:
    *        The appropriate function will be called during transition.
    *
    * @param new_state State to transition to.
+   * @return Returns true if changing state has succeeded
    */
-  void changeState(const State& new_state);
+  bool changeState(const State& new_state);
 
   /**
    * @brief Transitions to a new state. Path must exists between the current
@@ -432,7 +481,7 @@ private:
     const std::string& service_name,
     const std::vector<State>& states);
 
-  typedef void (RobotActivity::*MemberLambdaCallback)();
+  typedef bool (RobotActivity::*MemberLambdaCallback)();
 
   typedef boost::function < bool(
     std_srvs::Empty::Request& req,

@@ -108,14 +108,18 @@ private:
   /**
    * @brief Overriden onConfigure, which calls onManagedConfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
+   *
+   * @return Returns true if onManagedConfigure succeeded
    */
-  void onConfigure() final;
+  bool onConfigure() final;
 
   /**
    * @brief Overriden onUnconfigure, which calls onManagedUnconfigure. Cannot be
    *        overriden further by the child class of ManagedRobotActivity.
+   *
+   * @return Returns true if onManagedUnconfigure succeeded
    */
-  void onUnconfigure() final;
+  bool onUnconfigure() final;
 
   /**
    * @brief Overriden onStart, which calls onManagedStart. Cannot be
@@ -123,8 +127,10 @@ private:
    *        It subscribes and adverties all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedStart succeeded
    */
-  void onStart() final;
+  bool onStart() final;
 
   /**
    * @brief Overriden onStop, which calls onManagedStop. Cannot be
@@ -132,8 +138,10 @@ private:
    *        It shutdowns all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedStop succeeded
    */
-  void onStop() final;
+  bool onStop() final;
 
   /**
    * @brief Overriden onPause, which calls onManagedPause. Cannot be
@@ -141,8 +149,10 @@ private:
    *        It pauses all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedPause succeeded
    */
-  void onPause() final;
+  bool onPause() final;
 
   /**
    * @brief Overriden onResume, which calls onManagedResume. Cannot be
@@ -150,12 +160,14 @@ private:
    *        It resumes all ROS topics and services that were
    *        subscribed and advertised with subscription_manager
    *        and service_manager before calling onManagedStart.
+   *
+   * @return Returns true if onManagedResume succeeded
    */
-  void onResume() final;
+  bool onResume() final;
 
   /**
    * @brief User-defined function that's called at the end of transition from
-   *        LAUNCHING to UNCONFIGURED state
+   *        LAUNCHING to UNCONFIGURED state.
    */
   virtual void onManagedCreate() = 0;
 
@@ -168,38 +180,68 @@ private:
   /**
    * @brief User-defined function that's called at the end of transition from
    *        UNCONFIGURED to STOPPED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onManagedConfigure() = 0;
+  virtual bool onManagedConfigure() = 0;
 
   /**
   * @brief User-defined function that's called at the end of transition from
   *        STOPPED to UNCONFIGURED state
+  *        User has to return true or false, indicating whether the transition
+  *        has succeeded or not. In case of failure, the state remains
+  *        unchanged
+  *
+  * @return Returns true if transition succeeded
   */
-  virtual void onManagedUnconfigure() = 0;
+  virtual bool onManagedUnconfigure() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        STOPPED to PAUSED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onManagedStart() = 0;
+  virtual bool onManagedStart() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to STOPPED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onManagedStop() = 0;
+  virtual bool onManagedStop() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        RUNNING to PAUSED state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onManagedPause() = 0;
+  virtual bool onManagedPause() = 0;
 
   /**
    * @brief User-defined function that's called at the end of transition from
    *        PAUSED to RUNNING state
+   *        User has to return true or false, indicating whether the transition
+   *        has succeeded or not. In case of failure, the state remains
+   *        unchanged
+   *
+   * @return Returns true if transition succeeded
    */
-  virtual void onManagedResume() = 0;
+  virtual bool onManagedResume() = 0;
 };
 
 }  // namespace robot_activity

@@ -67,14 +67,14 @@ private:
   };
   void onManagedTerminate() override {};
 
-  void onManagedConfigure() override {};
-  void onManagedUnconfigure() override {};
+  bool onManagedConfigure() override { return true; };
+  bool onManagedUnconfigure() override { return true; };
 
-  void onManagedStart() override {};
-  void onManagedStop() override {};
+  bool onManagedStart() override { return true; };
+  bool onManagedStop() override { return true; };
 
-  void onManagedResume() override {};
-  void onManagedPause() override {};
+  bool onManagedResume() override { return true; };
+  bool onManagedPause() override { return true; };
 
   void myTimerCallback()
   {

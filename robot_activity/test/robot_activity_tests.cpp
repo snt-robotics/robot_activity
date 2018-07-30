@@ -58,14 +58,14 @@ private:
   void onCreate() override {};
   void onTerminate() override {};
 
-  void onConfigure() override {};
-  void onUnconfigure() override {};
+  bool onConfigure() override { return true; };
+  bool onUnconfigure() override { return true; };
 
-  void onStart() override {};
-  void onStop() override {};
+  bool onStart() override { return true; };
+  bool onStop() override { return true; };
 
-  void onResume() override {};
-  void onPause() override {};
+  bool onResume() override { return true; };
+  bool onPause() override { return true; };
 };
 
 class AnyRobotActivityWithTimer : public AnyRobotActivity
@@ -80,6 +80,15 @@ private:
     IsolatedAsyncTimer::LambdaCallback cb = [this]() { context++; };
     registerIsolatedTimer(cb, 1, stoppable);
   }
+};
+
+class OnStartCanFailRobotActivity : public AnyRobotActivity
+{
+public:
+  using AnyRobotActivity::AnyRobotActivity;
+  bool can_start = false;
+private:
+  bool onStart() override { return can_start; }
 };
 
 TEST(RobotActivityTests, RemappedNameInitializedStateAndNamespace)
@@ -400,6 +409,36 @@ TEST(RobotActivityTests, NonStoppableIsolatedAsyncTimer)
   EXPECT_EQ(start.call(start_empty), true);
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 3);
+}
+
+TEST(RobotActivityTests, OnStartCanFailRobotActivityTest)
+{
+  int argc = 2;
+  const char* argv[2];
+  argv[0] = "random_process_name";
+  argv[1] = "__name:=remapped_name";
+
+  ros::NodeHandle nh;
+  nh.setParam("/remapped_name/wait_for_supervisor", false);
+  nh.setParam("/remapped_name/autostart", false);
+
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
+  std_srvs::Empty start_empty;
+
+  OnStartCanFailRobotActivity test(argc, const_cast<char**>(argv));
+  EXPECT_EQ(test.can_start, false);
+  test.init().runAsync();
+  EXPECT_EQ(test.getState(), State::STOPPED);
+
+  bool result;
+  result = start.call(start_empty);
+  EXPECT_EQ(result, false);
+  EXPECT_EQ(test.getState(), State::STOPPED);
+
+  test.can_start = true;
+  result = start.call(start_empty);
+  EXPECT_EQ(result, true);
+  EXPECT_EQ(test.getState(), State::RUNNING);
 }
 
 int main(int argc, char **argv)
