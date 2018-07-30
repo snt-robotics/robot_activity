@@ -55,14 +55,14 @@ public:
   void onManagedCreate() override;
   void onManagedTerminate() override;
 
-  void onManagedConfigure() override;
-  void onManagedUnconfigure() override;
+  bool onManagedConfigure() override;
+  bool onManagedUnconfigure() override;
 
-  void onManagedStart() override;
-  void onManagedStop() override;
+  bool onManagedStart() override;
+  bool onManagedStop() override;
 
-  void onManagedResume() override;
-  void onManagedPause() override;
+  bool onManagedResume() override;
+  bool onManagedPause() override;
 
 private:
   void timerCallback();

@@ -101,36 +101,42 @@ void RobotActivityTutorials::onManagedCreate()
 void RobotActivityTutorials::onManagedTerminate()
 {
   ROS_INFO("onManagedTerminate");
-};
+}
 
-void RobotActivityTutorials::onManagedConfigure()
+bool RobotActivityTutorials::onManagedConfigure()
 {
   ROS_INFO("onManagedConfigure");
+  return true;
 }
 
-void RobotActivityTutorials::onManagedUnconfigure()
+bool RobotActivityTutorials::onManagedUnconfigure()
 {
   ROS_INFO("onManagedUnconfigure");
+  return true;
 }
 
-void RobotActivityTutorials::onManagedStart()
+bool RobotActivityTutorials::onManagedStart()
 {
   ROS_INFO("onManagedStart");
+  return true;
 }
 
-void RobotActivityTutorials::onManagedStop()
+bool RobotActivityTutorials::onManagedStop()
 {
   ROS_INFO("onManagedStop");
+  return true;
 }
 
-void RobotActivityTutorials::onManagedPause()
+bool RobotActivityTutorials::onManagedPause()
 {
   ROS_INFO("onManagedPause");
+  return true;
 }
 
-void RobotActivityTutorials::onManagedResume()
+bool RobotActivityTutorials::onManagedResume()
 {
   ROS_INFO("onManagedResume");
+  return true;
 }
 
 }  // namespace robot_activity_tutorials
