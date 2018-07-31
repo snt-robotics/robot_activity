@@ -78,7 +78,11 @@ public:
 private:
   void onCreate() override
   {
-    IsolatedAsyncTimer::LambdaCallback cb = [this]() { context++; };
+    IsolatedAsyncTimer::LambdaCallback cb = [this]()
+    {
+      ROS_INFO("context: %d", context);
+      context++;
+    };
     registerIsolatedTimer(cb, 1, stoppable);
   }
 };
@@ -363,6 +367,8 @@ TEST(RobotActivityTests, IsolatedAsyncTimer)
 
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
+  EXPECT_EQ(test.getState(), State::RUNNING);
+
   ros::Duration(2.1).sleep();
   EXPECT_EQ(test.context, 2);
 }
