@@ -80,7 +80,7 @@ private:
   {
     IsolatedAsyncTimer::LambdaCallback cb = [this]()
     {
-      ROS_INFO("context: %d", context);
+      std::cout << "context: " << context << std::endl;
       context++;
     };
     registerIsolatedTimer(cb, 1, stoppable);
@@ -392,6 +392,8 @@ TEST(RobotActivityTests, StoppableIsolatedAsyncTimer)
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
 
+  EXPECT_EQ(test.getState(), State::RUNNING);
+
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 1);
   EXPECT_EQ(pause.call(pause_empty), true);
@@ -420,6 +422,8 @@ TEST(RobotActivityTests, NonStoppableIsolatedAsyncTimer)
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.stoppable = false;
   test.init().runAsync();
+
+  EXPECT_EQ(test.getState(), State::RUNNING);
 
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 1);
