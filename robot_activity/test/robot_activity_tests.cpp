@@ -42,6 +42,7 @@
 
 #include <std_srvs/Empty.h>
 
+#include <thread>
 #include <vector>
 #include <string>
 
@@ -77,7 +78,11 @@ public:
 private:
   void onCreate() override
   {
-    IsolatedAsyncTimer::LambdaCallback cb = [this]() { context++; };
+    IsolatedAsyncTimer::LambdaCallback cb = [this]()
+    {
+      std::cout << "context: " << context << std::endl;
+      context++;
+    };
     registerIsolatedTimer(cb, 1, stoppable);
   }
 };
@@ -89,6 +94,19 @@ public:
   bool can_start = false;
 private:
   bool onStart() override { return can_start; }
+};
+
+class LongOnConfigureRobotActivity : public AnyRobotActivity
+{
+public:
+  using AnyRobotActivity::AnyRobotActivity;
+  float sleep_time = 3.0;
+private:
+  bool onConfigure() override
+  {
+    ros::Duration(sleep_time).sleep();
+    return true;
+  }
 };
 
 TEST(RobotActivityTests, RemappedNameInitializedStateAndNamespace)
@@ -349,6 +367,8 @@ TEST(RobotActivityTests, IsolatedAsyncTimer)
 
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
+  EXPECT_EQ(test.getState(), State::RUNNING);
+
   ros::Duration(2.1).sleep();
   EXPECT_EQ(test.context, 2);
 }
@@ -371,6 +391,8 @@ TEST(RobotActivityTests, StoppableIsolatedAsyncTimer)
 
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.init().runAsync();
+
+  EXPECT_EQ(test.getState(), State::RUNNING);
 
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 1);
@@ -400,6 +422,8 @@ TEST(RobotActivityTests, NonStoppableIsolatedAsyncTimer)
   AnyRobotActivityWithTimer test(argc, const_cast<char**>(argv));
   test.stoppable = false;
   test.init().runAsync();
+
+  EXPECT_EQ(test.getState(), State::RUNNING);
 
   ros::Duration(1.1).sleep();
   EXPECT_EQ(test.context, 1);
@@ -439,6 +463,33 @@ TEST(RobotActivityTests, OnStartCanFailRobotActivityTest)
   result = start.call(start_empty);
   EXPECT_EQ(result, true);
   EXPECT_EQ(test.getState(), State::RUNNING);
+}
+
+TEST(RobotActivityTests, LongOnConfigureRobotActivityTest)
+{
+  int argc = 2;
+  const char* argv[2];
+  argv[0] = "random_process_name";
+  argv[1] = "__name:=remapped_name";
+
+  LongOnConfigureRobotActivity test(argc, const_cast<char**>(argv));
+
+  ros::NodeHandle nh;
+  nh.setParam("/remapped_name/wait_for_supervisor", false);
+  nh.setParam("/remapped_name/autostart", false);
+  auto start = nh.serviceClient<std_srvs::Empty>("/remapped_name/robot_activity/start");
+  std_srvs::Empty start_empty;
+  std::thread init_robot_activity([&] { test.init().runAsync(); });
+
+  start.waitForExistence();
+
+  auto before = ros::Time::now();
+  EXPECT_EQ(start.call(start_empty), true);
+  auto after = ros::Time::now();
+  EXPECT_EQ(test.getState(), State::RUNNING);
+  EXPECT_LT(abs((after - before).toSec() - test.sleep_time), 0.5);
+
+  init_robot_activity.join();
 }
 
 int main(int argc, char **argv)

@@ -88,7 +88,14 @@ RobotActivity& RobotActivity::init(bool autostart)
   {
     ros::Rate poll_rate(100);
     while (process_state_pub_.getNumSubscribers() == 0 && ros::ok())
+    {
       poll_rate.sleep();
+    }
+    if (!ros::ok())
+    {
+      /* Return immediately if Ctrl+C was pressed */
+      return *this;
+    }
   }
 
   notifyState();
@@ -131,10 +138,19 @@ RobotActivity& RobotActivity::init(bool autostart)
   autostart_ = autostart_ || autostart;
   ROS_INFO_STREAM("autostart = " << std::boolalpha << autostart_);
 
+  std_srvs::Empty empty;
   if (autostart_)
-    transitionToState(State::RUNNING);
+  {
+    auto start = node_handle_private_->serviceClient<std_srvs::Empty>("robot_activity/start");
+    start.waitForExistence();
+    start.call(empty);
+  }
   else
-    transitionToState(State::STOPPED);
+  {
+    auto stop = node_handle_private_->serviceClient<std_srvs::Empty>("robot_activity/stop");
+    stop.waitForExistence();
+    stop.call(empty);
+  }
 
   return *this;
 }
